@@ -19,6 +19,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
+from sdlc.lib.agent import execute_agent_workflow, parse_agent_command
 from sdlc.lib.devtunnel import (
     check_devtunnel_authenticated,
     check_devtunnel_installed,
@@ -30,8 +31,8 @@ from sdlc.lib.devtunnel import (
     show_devtunnel,
     start_devtunnel_host,
 )
-from sdlc.lib.github import extract_repo_path, get_repo_url
-from sdlc.lib.utils import make_adw_id
+from sdlc.lib.github import extract_repo_path, fetch_issue, get_repo_url
+from sdlc.lib.utils import make_adw_id, setup_logger
 from sdlc.lib.webhook import (
     ensure_webhook_configured,
     get_webhook_url_from_tunnel,
@@ -346,20 +347,40 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
 
             should_trigger = False
             trigger_reason = ""
+            is_agent_trigger = False
+            explicit_command = None
+            plan_only = False
 
             # Check if this is an issue opened event
             if event_type == "issues" and action == "opened" and issue_number:
                 should_trigger = True
                 trigger_reason = "New issue opened"
 
-            # Check if this is an issue comment with 'adw' text
+            # Check if this is an issue comment with 'adw' or '@agent' text
             elif event_type == "issue_comment" and action == "created" and issue_number:
                 comment = payload.get("comment", {})
-                comment_body = comment.get("body", "").strip().lower()
+                comment_body = comment.get("body", "").strip()
 
                 print(f"Comment body: '{comment_body}'")
 
-                if comment_body == "adw":
+                # Check for @agent mention (case-insensitive)
+                if "@agent" in comment_body.lower():
+                    should_trigger = True
+                    is_agent_trigger = True
+                    trigger_reason = "Comment with '@agent' mention"
+
+                    # Parse for explicit command and plan-only flag
+                    explicit_command, _, plan_only = parse_agent_command(comment_body)
+                    if explicit_command:
+                        print(f"Explicit command detected: {explicit_command}")
+                    else:
+                        print("No explicit command, will auto-classify")
+
+                    if plan_only:
+                        print("Plan-only mode detected")
+
+                # Check for legacy 'adw' command
+                elif comment_body.lower() == "adw":
                     should_trigger = True
                     trigger_reason = "Comment with 'adw' command"
 
@@ -367,41 +388,101 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
                 # Generate ADW ID for this workflow
                 adw_id = make_adw_id()
 
-                # Find the script directory
-                script_dir = os.path.join(os.getcwd(), "scripts")
-                trigger_script = os.path.join(script_dir, "adw_plan_build.py")
+                # Handle @agent trigger differently
+                if is_agent_trigger:
+                    print(f"Launching agent workflow for issue #{issue_number} (reason: {trigger_reason})")
 
-                # Check if script exists
-                if not os.path.exists(trigger_script):
-                    print(f"⚠️  Script not found: {trigger_script}")
+                    # Fetch the issue details
+                    try:
+                        repo_url = get_repo_url()
+                        repo_path = extract_repo_path(repo_url)
+                        issue = fetch_issue(str(issue_number), repo_path)
+                    except Exception as e:
+                        error_msg = f"Failed to fetch issue: {str(e)}"
+                        print(f"⚠️  {error_msg}")
+                        return {
+                            "status": "error",
+                            "message": error_msg,
+                        }
+
+                    # Set up logger for this workflow
+                    logger = setup_logger(adw_id, "agent_workflow")
+
+                    # Execute agent workflow in background
+                    def run_agent_workflow():
+                        """Background task to run agent workflow"""
+                        try:
+                            success, error = execute_agent_workflow(
+                                issue=issue,
+                                issue_number=str(issue_number),
+                                adw_id=adw_id,
+                                logger=logger,
+                                explicit_command=explicit_command,
+                                plan_only=plan_only
+                            )
+                            if not success:
+                                logger.error(f"Agent workflow failed: {error}")
+                        except Exception as e:
+                            logger.error(f"Agent workflow exception: {str(e)}")
+
+                    # Import threading to run in background
+                    import threading
+                    thread = threading.Thread(target=run_agent_workflow)
+                    thread.daemon = True
+                    thread.start()
+
+                    mode_str = "plan-only" if plan_only else "full"
+                    print(f"Agent workflow started for issue #{issue_number} with ADW ID: {adw_id} (mode: {mode_str})")
+                    print(f"Logs will be written to: agents/{adw_id}/agent_workflow/execution.log")
+
                     return {
-                        "status": "error",
-                        "message": "adw_plan_build.py script not found",
+                        "status": "accepted",
+                        "issue": issue_number,
+                        "adw_id": adw_id,
+                        "message": f"Agent workflow triggered for issue #{issue_number}",
+                        "reason": trigger_reason,
+                        "command": explicit_command if explicit_command else "auto-classify",
+                        "plan_only": plan_only,
+                        "logs": f"agents/{adw_id}/agent_workflow/",
                     }
 
-                # Build command
-                cmd = ["uv", "run", trigger_script, str(issue_number), adw_id]
+                # Legacy ADW trigger (adw command or issue opened)
+                else:
+                    # Find the script directory
+                    script_dir = os.path.join(os.getcwd(), "scripts")
+                    trigger_script = os.path.join(script_dir, "adw_plan_build.py")
 
-                print(
-                    f"Launching background process: {' '.join(cmd)} (reason: {trigger_reason})"
-                )
+                    # Check if script exists
+                    if not os.path.exists(trigger_script):
+                        print(f"⚠️  Script not found: {trigger_script}")
+                        return {
+                            "status": "error",
+                            "message": "adw_plan_build.py script not found",
+                        }
 
-                # Launch in background
-                process = subprocess.Popen(
-                    cmd, cwd=os.getcwd(), env=os.environ.copy()
-                )
+                    # Build command
+                    cmd = ["uv", "run", trigger_script, str(issue_number), adw_id]
 
-                print(f"Background process started for issue #{issue_number} with ADW ID: {adw_id}")
-                print(f"Logs will be written to: agents/{adw_id}/adw_plan_build/execution.log")
+                    print(
+                        f"Launching background process: {' '.join(cmd)} (reason: {trigger_reason})"
+                    )
 
-                return {
-                    "status": "accepted",
-                    "issue": issue_number,
-                    "adw_id": adw_id,
-                    "message": f"ADW workflow triggered for issue #{issue_number}",
-                    "reason": trigger_reason,
-                    "logs": f"agents/{adw_id}/adw_plan_build/",
-                }
+                    # Launch in background
+                    process = subprocess.Popen(
+                        cmd, cwd=os.getcwd(), env=os.environ.copy()
+                    )
+
+                    print(f"Background process started for issue #{issue_number} with ADW ID: {adw_id}")
+                    print(f"Logs will be written to: agents/{adw_id}/adw_plan_build/execution.log")
+
+                    return {
+                        "status": "accepted",
+                        "issue": issue_number,
+                        "adw_id": adw_id,
+                        "message": f"ADW workflow triggered for issue #{issue_number}",
+                        "reason": trigger_reason,
+                        "logs": f"agents/{adw_id}/adw_plan_build/",
+                    }
             else:
                 print(
                     f"Ignoring webhook: event={event_type}, action={action}, issue_number={issue_number}"
