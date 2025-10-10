@@ -6,6 +6,7 @@ A unified CLI tool for development workflow automation.
 
 import click
 from sdlc.commands.health import health
+from sdlc.commands.watcher import watcher
 
 
 @click.group()
@@ -28,6 +29,7 @@ def main():
 
 # Register commands
 main.add_command(health)
+main.add_command(watcher)
 
 
 if __name__ == "__main__":

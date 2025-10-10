@@ -272,18 +272,29 @@ async def github_webhook(request: Request):
 async def health():
     """Health check endpoint - runs comprehensive system health check."""
     try:
-        # Run the health check script
+        # Use the new SDLC CLI tool (falls back to old script if not available)
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        health_check_script = os.path.join(script_dir, "health_check.py")
-        
-        # Run health check with timeout
+        project_root = os.path.dirname(script_dir)
+
+        # Try using the new sdlc CLI first
         result = subprocess.run(
-            ["uv", "run", health_check_script],
+            ["uv", "run", "sdlc", "health"],
             capture_output=True,
             text=True,
             timeout=30,
-            cwd=script_dir
+            cwd=project_root
         )
+
+        # If sdlc command doesn't work, fallback to old script
+        if result.returncode != 0 and "No such file" in result.stderr:
+            health_check_script = os.path.join(script_dir, "health_check.py")
+            result = subprocess.run(
+                ["uv", "run", health_check_script],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=script_dir
+            )
         
         # Print the health check output for debugging
         print("=== Health Check Output ===")
