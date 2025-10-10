@@ -174,7 +174,13 @@ def configure_devtunnel_port(tunnel_id: str, port: int) -> bool:
             return True
         else:
             # Port might already exist, which is fine
-            if "already exists" in result.stderr.lower():
+            error_output = result.stderr.lower()
+            if any(phrase in error_output for phrase in [
+                "already exists",
+                "conflicts with an existing port",
+                "tunnel port number conflicts"
+            ]):
+                # Port already configured - this is expected when restarting
                 return True
             print(f"⚠️  Failed to configure port: {result.stderr}", file=sys.stderr)
             return False

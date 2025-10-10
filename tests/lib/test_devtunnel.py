@@ -251,6 +251,21 @@ class TestConfigureDevtunnelPort:
         result = configure_devtunnel_port("test-tunnel", 8001)
         assert result is True
 
+    @patch("subprocess.run")
+    def test_handles_port_conflict(self, mock_run, capsys):
+        """Test handles port conflict (when restarting watcher)."""
+        mock_result = Mock()
+        mock_result.returncode = 1
+        mock_result.stderr = "Tunnel service error: Conflict with existing entity. Tunnel port number conflicts with an existing port in the tunnel."
+        mock_run.return_value = mock_result
+
+        result = configure_devtunnel_port("test-tunnel", 8001)
+        assert result is True
+
+        captured = capsys.readouterr()
+        # Should not print any warning for expected conflicts
+        assert "⚠️" not in captured.err
+
 
 class TestShowDevtunnel:
     """Tests for show_devtunnel function."""

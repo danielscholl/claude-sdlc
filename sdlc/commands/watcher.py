@@ -57,13 +57,12 @@ def cleanup_resources(tunnel_id: str, remove_all: bool = False):
 
     # Stop devtunnel host process
     if devtunnel_process and devtunnel_process.poll() is None:
-        print("\n🛑 Stopping devtunnel host...")
         devtunnel_process.terminate()
         try:
             devtunnel_process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             devtunnel_process.kill()
-        print("✅ Devtunnel host stopped")
+        print("\n🛑 Devtunnel host stopped")
         devtunnel_process = None
 
     # If --remove flag was used, clean up everything
@@ -214,8 +213,7 @@ def watcher(remove: bool, port: int, tunnel_id: Optional[str]):
     print(f"  📡 Devtunnel: {tunnel_id} {'(created)' if tunnel_created else '(existing)'}")
     print(f"  🌐 Webhook URL: {webhook_url}")
     print(f"  🏥 Local server: http://0.0.0.0:{port}")
-    print(f"\nPress Ctrl+C to stop")
-    print("(tunnel and webhooks will persist unless --remove is used)\n")
+    print(f"\nPress Ctrl+C to stop\n")
 
     # Register cleanup handlers
     atexit.register(lambda: cleanup_resources(tunnel_id, remove_all=remove))
