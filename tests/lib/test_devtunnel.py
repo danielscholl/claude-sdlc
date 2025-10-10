@@ -288,7 +288,7 @@ class TestDeleteDevtunnel:
         mock_result.returncode = 0
         mock_run.return_value = mock_result
 
-        result = delete_devtunnel("test-tunnel")
+        result = delete_devtunnel("test-tunnel", silent=True)
         assert result is True
 
     @patch("subprocess.run")
@@ -299,7 +299,7 @@ class TestDeleteDevtunnel:
         mock_result.stderr = "Tunnel not found"
         mock_run.return_value = mock_result
 
-        result = delete_devtunnel("test-tunnel")
+        result = delete_devtunnel("test-tunnel", silent=True)
         assert result is True
 
 

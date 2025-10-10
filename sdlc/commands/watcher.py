@@ -74,14 +74,15 @@ def cleanup_resources(tunnel_id: str, remove_all: bool = False):
             repo_path = extract_repo_path(repo_url)
 
             # Remove webhooks
-            print("🗑️  Deleting GitHub webhooks...")
-            removed = remove_devtunnel_webhooks(repo_path, silent=False)
+            removed = remove_devtunnel_webhooks(repo_path, silent=True)
             if removed > 0:
-                print(f"  ✅ Deleted {removed} webhook(s)")
+                print(f"  🗑️ Deleted {removed} webhook(s)")
+            else:
+                print(f"  ℹ️  No webhooks to delete")
 
             # Delete tunnel
-            print(f"🗑️  Deleting devtunnel {tunnel_id}...")
-            delete_devtunnel(tunnel_id)
+            if delete_devtunnel(tunnel_id, silent=True):
+                print(f"  🗑️ Deleted devtunnel {tunnel_id}")
         except Exception as e:
             print(f"⚠️  Error during cleanup: {e}", file=sys.stderr)
 

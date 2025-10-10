@@ -41,8 +41,8 @@ class TestWatcherCommand:
         result = runner.invoke(watcher, ["--remove"])
 
         assert result.exit_code == 0
-        mock_remove_webhooks.assert_called_once()
-        mock_delete.assert_called_once_with("test-tunnel")
+        mock_remove_webhooks.assert_called_once_with("user/repo", silent=True)
+        mock_delete.assert_called_once_with("test-tunnel", silent=True)
 
     @patch("sdlc.commands.watcher.uvicorn.run")
     @patch("sdlc.commands.watcher.get_webhook_url_from_tunnel")

@@ -217,11 +217,12 @@ def show_devtunnel(tunnel_id: str) -> Optional[str]:
         return None
 
 
-def delete_devtunnel(tunnel_id: str) -> bool:
+def delete_devtunnel(tunnel_id: str, silent: bool = False) -> bool:
     """Delete a devtunnel.
 
     Args:
         tunnel_id: The tunnel ID to delete
+        silent: If True, suppress output messages
 
     Returns:
         bool: True if deleted successfully, False otherwise
@@ -234,14 +235,16 @@ def delete_devtunnel(tunnel_id: str) -> bool:
             timeout=30,
         )
         if result.returncode == 0:
-            print(f"  ✅ Deleted devtunnel {tunnel_id}")
+            # Silent - will be shown in summary
             return True
         else:
             # If tunnel doesn't exist, consider it success
             if "not found" in result.stderr.lower():
-                print(f"ℹ️  Devtunnel {tunnel_id} doesn't exist (already deleted)")
+                if not silent:
+                    print(f"ℹ️  Devtunnel {tunnel_id} doesn't exist (already deleted)")
                 return True
-            print(f"⚠️  Failed to delete devtunnel: {result.stderr}", file=sys.stderr)
+            if not silent:
+                print(f"⚠️  Failed to delete devtunnel: {result.stderr}", file=sys.stderr)
             return False
     except Exception as e:
         print(f"⚠️  Error deleting devtunnel: {e}", file=sys.stderr)
