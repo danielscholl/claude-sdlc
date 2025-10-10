@@ -186,9 +186,9 @@ def remove_devtunnel_webhooks(repo_path: str) -> int:
                 removed_count += 1
 
     if removed_count > 0:
-        print(f"✅ Removed {removed_count} devtunnel webhook(s)")
+        print(f"✅ Deleted {removed_count} devtunnel webhook(s)")
     else:
-        print("ℹ️  No devtunnel webhooks found to remove")
+        print("ℹ️  No devtunnel webhooks found to delete")
 
     return removed_count
 
