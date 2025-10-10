@@ -75,7 +75,9 @@ def cleanup_resources(tunnel_id: str, remove_all: bool = False):
 
             # Remove webhooks
             print("🗑️  Deleting GitHub webhooks...")
-            remove_devtunnel_webhooks(repo_path)
+            removed = remove_devtunnel_webhooks(repo_path, silent=False)
+            if removed > 0:
+                print(f"  ✅ Deleted {removed} webhook(s)")
 
             # Delete tunnel
             print(f"🗑️  Deleting devtunnel {tunnel_id}...")
@@ -160,7 +162,6 @@ def watcher(remove: bool, port: int, tunnel_id: Optional[str]):
 
     # Start watcher server
     print("🚀 Starting GitHub Webhook Watcher\n")
-    print("━" * 60)
 
     # Check devtunnel installation
     if not check_devtunnel_installed():
@@ -187,16 +188,16 @@ def watcher(remove: bool, port: int, tunnel_id: Optional[str]):
     # Resolve tunnel ID
     tunnel_id = tunnel_id or resolve_devtunnel_id()
     tunnel_id_global = tunnel_id
-    print(f"📡 Using devtunnel ID: {tunnel_id}")
 
     # Check if tunnel exists, create if not
     tunnel_info = show_devtunnel(tunnel_id)
+    tunnel_created = False
     if not tunnel_info:
-        print(f"Creating new devtunnel: {tunnel_id}")
         if not create_devtunnel(tunnel_id):
             print("❌ Failed to create devtunnel")
             sys.exit(1)
         tunnel_info = show_devtunnel(tunnel_id)
+        tunnel_created = True
 
     # Configure port
     configure_devtunnel_port(tunnel_id, port)
@@ -207,12 +208,11 @@ def watcher(remove: bool, port: int, tunnel_id: Optional[str]):
         print("❌ Failed to get webhook URL")
         sys.exit(1)
 
-    print(f"🌐 Webhook URL: {webhook_url}")
-
-    print("━" * 60)
-    print(f"\n✅ Watcher server starting on http://0.0.0.0:{port}")
-    print(f"📡 Webhook endpoint: POST /gh-webhook")
-    print(f"🏥 Health check: GET /health")
+    # Print configuration summary
+    print("Configuration:")
+    print(f"  📡 Devtunnel: {tunnel_id} {'(created)' if tunnel_created else '(existing)'}")
+    print(f"  🌐 Webhook URL: {webhook_url}")
+    print(f"  🏥 Local server: http://0.0.0.0:{port}")
     print(f"\nPress Ctrl+C to stop")
     print("(tunnel and webhooks will persist unless --remove is used)\n")
 
@@ -251,17 +251,16 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
         """Configure GitHub webhook and start devtunnel host after server starts."""
         global devtunnel_process
 
+        print("\nSetting up services...")
+
         # Server is now listening, start devtunnel host
-        print(f"\n🚀 Starting devtunnel host...")
         devtunnel_process = start_devtunnel_host(tunnel_id)
 
         if not devtunnel_process:
-            print("⚠️  Failed to start devtunnel host")
+            print("  ❌ Failed to start devtunnel host")
             return
 
         # Wait for devtunnel to be ready by reading its output
-        # The old implementation waited for "Starting tunnel host" message
-        print("⏳ Waiting for devtunnel to be ready...")
         tunnel_ready = False
         timeout = 10  # 10 second timeout
         start_time = asyncio.get_event_loop().time()
@@ -269,18 +268,19 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
         while (asyncio.get_event_loop().time() - start_time) < timeout:
             # Check if process exited
             if devtunnel_process.poll() is not None:
-                print("⚠️  Devtunnel process exited unexpectedly")
-                break
+                print("  ❌ Devtunnel process exited unexpectedly")
+                return
 
             # Read a line from stdout (non-blocking check)
             try:
                 line = devtunnel_process.stdout.readline()
                 if line:
-                    print(f"   {line.rstrip()}")
+                    # Silently consume output unless it's an error
+                    if "error" in line.lower() or "failed" in line.lower():
+                        print(f"  ⚠️  {line.rstrip()}")
                     # Look for indicators that tunnel is ready
                     if "Starting tunnel host" in line or "Ready to accept connections" in line:
                         tunnel_ready = True
-                        print("✅ Devtunnel is ready")
                         break
             except Exception:
                 pass
@@ -288,12 +288,12 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
             await asyncio.sleep(0.1)
 
         if not tunnel_ready:
-            print("⚠️  Devtunnel may not be fully ready yet, but continuing...")
+            print("  ⚠️  Devtunnel startup timeout - continuing anyway")
+        else:
+            print("  ✅ Devtunnel host ready")
 
         # Additional safety margin
         await asyncio.sleep(1)
-
-        print("🔗 Configuring GitHub webhook...")
 
         try:
             # Get repository information
@@ -303,17 +303,18 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
             # Get webhook URL
             webhook_url = get_webhook_url_from_tunnel(tunnel_id, port)
             if not webhook_url:
-                print("⚠️  Could not determine webhook URL")
+                print("  ❌ Could not determine webhook URL")
                 return
 
             # Ensure webhook is configured
             if ensure_webhook_configured(repo_path, webhook_url):
-                print(f"✅ GitHub webhook configured: {webhook_url}\n")
+                # Extract webhook ID if it was created
+                print("  ✅ GitHub webhook configured")
             else:
-                print("⚠️  Could not configure webhook\n")
+                print("  ❌ Could not configure webhook")
 
         except Exception as e:
-            print(f"⚠️  Error configuring webhook: {e}\n")
+            print(f"  ❌ Error configuring webhook: {e}")
 
     @app.post("/gh-webhook")
     async def github_webhook(request: Request):

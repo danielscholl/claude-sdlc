@@ -112,7 +112,7 @@ def create_github_webhook(repo_path: str, webhook_url: str, events: List[str] = 
         if result.returncode == 0:
             webhook_data = json.loads(result.stdout)
             webhook_id = webhook_data.get("id")
-            print(f"✅ Created webhook: ID {webhook_id}")
+            # Silent - will be shown in summary
             return webhook_id
         else:
             print(f"⚠️  Failed to create webhook: {result.stderr}", file=sys.stderr)
@@ -152,7 +152,7 @@ def delete_github_webhook(repo_path: str, webhook_id: int) -> bool:
         )
 
         if result.returncode == 0 or result.returncode == 204:
-            print(f"✅ Deleted webhook: ID {webhook_id}")
+            # Silent - will be shown in summary
             return True
         else:
             print(f"⚠️  Failed to delete webhook {webhook_id}: {result.stderr}", file=sys.stderr)
@@ -163,11 +163,12 @@ def delete_github_webhook(repo_path: str, webhook_id: int) -> bool:
         return False
 
 
-def remove_devtunnel_webhooks(repo_path: str) -> int:
+def remove_devtunnel_webhooks(repo_path: str, silent: bool = False) -> int:
     """Remove all devtunnel-based webhooks from a repository.
 
     Args:
         repo_path: The repository path (owner/repo)
+        silent: If True, suppress output messages
 
     Returns:
         int: Number of webhooks removed
@@ -185,10 +186,9 @@ def remove_devtunnel_webhooks(repo_path: str) -> int:
             if webhook_id and delete_github_webhook(repo_path, webhook_id):
                 removed_count += 1
 
-    if removed_count > 0:
-        print(f"✅ Deleted {removed_count} devtunnel webhook(s)")
-    else:
-        print("ℹ️  No devtunnel webhooks found to delete")
+    # Only print if not silent and for backward compatibility
+    if not silent and removed_count == 0:
+        print("  ℹ️  No devtunnel webhooks found")
 
     return removed_count
 
@@ -218,15 +218,13 @@ def ensure_webhook_configured(repo_path: str, webhook_url: str, events: List[str
         config = webhook.get("config", {})
         url = config.get("url", "")
         if url == webhook_url:
-            print(f"ℹ️  Webhook already configured: {webhook_url}")
+            # Webhook already exists, silently return success
             return True
 
-    # Remove old devtunnel webhooks
-    print("🔄 Removing old devtunnel webhooks...")
-    remove_devtunnel_webhooks(repo_path)
+    # Remove old devtunnel webhooks silently
+    remove_devtunnel_webhooks(repo_path, silent=True)
 
     # Create new webhook
-    print(f"🔗 Creating new webhook: {webhook_url}")
     webhook_id = create_github_webhook(repo_path, webhook_url, events)
 
     return webhook_id is not None

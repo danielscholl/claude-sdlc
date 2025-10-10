@@ -213,9 +213,7 @@ class TestCreateDevtunnel:
 
         result = create_devtunnel("test-tunnel")
         assert result is True
-
-        captured = capsys.readouterr()
-        assert "Created devtunnel: test-tunnel" in captured.out
+        # No output expected - success is silent now
 
     @patch("subprocess.run")
     def test_handles_creation_failure(self, mock_run, capsys):

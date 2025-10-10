@@ -136,7 +136,7 @@ def create_devtunnel(tunnel_id: str) -> bool:
             timeout=30,
         )
         if result.returncode == 0:
-            print(f"✅ Created devtunnel: {tunnel_id}")
+            # Silent success - will be shown in summary
             return True
         else:
             # Check for authentication issues
@@ -170,12 +170,11 @@ def configure_devtunnel_port(tunnel_id: str, port: int) -> bool:
             timeout=30,
         )
         if result.returncode == 0:
-            print(f"✅ Configured port {port} for tunnel {tunnel_id}")
+            # Silent success - configuration will be shown in summary
             return True
         else:
             # Port might already exist, which is fine
             if "already exists" in result.stderr.lower():
-                print(f"ℹ️  Port {port} already configured for tunnel {tunnel_id}")
                 return True
             print(f"⚠️  Failed to configure port: {result.stderr}", file=sys.stderr)
             return False
@@ -235,7 +234,7 @@ def delete_devtunnel(tunnel_id: str) -> bool:
             timeout=30,
         )
         if result.returncode == 0:
-            print(f"✅ Deleted devtunnel: {tunnel_id}")
+            print(f"  ✅ Deleted devtunnel {tunnel_id}")
             return True
         else:
             # If tunnel doesn't exist, consider it success
@@ -270,7 +269,7 @@ def start_devtunnel_host(tunnel_id: str, port: int = None) -> Optional[subproces
             stderr=subprocess.STDOUT,
             text=True,
         )
-        print(f"✅ Started devtunnel host for {tunnel_id}")
+        # Silent - status will be shown after checking readiness
         return process
     except Exception as e:
         print(f"⚠️  Error starting devtunnel host: {e}", file=sys.stderr)
