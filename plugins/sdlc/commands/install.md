@@ -12,9 +12,17 @@ git ls-files
 ## Read
 @README.md
 
-## Read and Execute
-@README.md
+## Execute
+Follow all installation steps from the README.md file in order.
+Look for sections titled "Installation", "Setup", "Getting Started", or "Quick Start".
+Run every command shown in those sections sequentially.
+
+## Execute (if .env.sample exists)
 uv run ${CLAUDE_PLUGIN_ROOT}/scripts/map_env.py [.env.sample] [.env]
 
-## Run
-Install agent dependencies
+## Summarize
+Provide a concise summary of:
+- What the project does
+- Key technologies and frameworks used
+- Project structure and main components
+- Current installation status

@@ -1,6 +1,6 @@
 # Claude Software Development Lifecycle
 
-The location for sharing workflows.
+A Software Development Lifecycle for use with Claude Code.
 
 ## Quick start
 
@@ -23,26 +23,23 @@ This project includes a unified CLI tool called **SDLC** (Software Development L
 ### Installation
 
 ```bash
-cd sdlc
+# From the project root directory
 uv sync
-uv pip install -e .
+
+# Install as a global tool (recommended - makes 'sdlc' available globally)
+uv tool install --editable .
+
+# Or run with 'uv run' prefix (no global install)
+# uv pip install -e .
 ```
 
 ### Usage
 
 ```bash
-# Run health checks
+# If installed with 'uv tool install'
 sdlc health
-
-# Get help
 sdlc --help
 ```
 
 See [sdlc/README.md](sdlc/README.md) for detailed documentation.
-
-## Available plugins
-
-### sdlc
-
-An exploration of software development lifecycle activities.
 
