@@ -242,16 +242,35 @@ class TestFastAPIApp:
         assert data["status"] == "ok"
         assert "pong" in data
 
-    @patch("subprocess.Popen")
-    @patch("os.path.exists")
-    def test_webhook_endpoint_triggers_on_issue_opened(self, mock_exists, mock_popen):
-        """Test webhook triggers ADW on issue opened."""
+    @patch("sdlc.commands.watcher.setup_logger")
+    @patch("sdlc.commands.watcher.fetch_issue")
+    @patch("sdlc.commands.watcher.extract_repo_path")
+    @patch("sdlc.commands.watcher.get_repo_url")
+    def test_webhook_endpoint_triggers_on_issue_opened(
+        self, mock_get_url, mock_extract, mock_fetch, mock_logger
+    ):
+        """Test webhook triggers agent workflow on issue opened."""
         from sdlc.commands.watcher import create_fastapi_app
+        from sdlc.lib.models import GitHubIssue, GitHubUser
         from fastapi.testclient import TestClient
 
-        mock_exists.return_value = True
-        mock_process = Mock()
-        mock_popen.return_value = mock_process
+        # Mock the GitHub calls
+        mock_get_url.return_value = "https://github.com/user/repo.git"
+        mock_extract.return_value = "user/repo"
+        mock_fetch.return_value = GitHubIssue(
+            number=123,
+            title="Test Issue",
+            body="Test body",
+            state="open",
+            author=GitHubUser(login="testuser"),
+            assignees=[],
+            labels=[],
+            comments=[],
+            createdAt="2024-01-01T00:00:00Z",
+            updatedAt="2024-01-01T00:00:00Z",
+            url="https://github.com/user/repo/issues/123",
+        )
+        mock_logger.return_value = Mock()
 
         app = create_fastapi_app("test-tunnel", 8001)
         client = TestClient(app)
@@ -271,16 +290,35 @@ class TestFastAPIApp:
         assert data["issue"] == 123
         assert "adw_id" in data
 
-    @patch("subprocess.Popen")
-    @patch("os.path.exists")
-    def test_webhook_endpoint_triggers_on_adw_comment(self, mock_exists, mock_popen):
-        """Test webhook triggers ADW on 'adw' comment."""
+    @patch("sdlc.commands.watcher.setup_logger")
+    @patch("sdlc.commands.watcher.fetch_issue")
+    @patch("sdlc.commands.watcher.extract_repo_path")
+    @patch("sdlc.commands.watcher.get_repo_url")
+    def test_webhook_endpoint_triggers_on_adw_comment(
+        self, mock_get_url, mock_extract, mock_fetch, mock_logger
+    ):
+        """Test webhook triggers agent workflow on 'adw' comment."""
         from sdlc.commands.watcher import create_fastapi_app
+        from sdlc.lib.models import GitHubIssue, GitHubUser
         from fastapi.testclient import TestClient
 
-        mock_exists.return_value = True
-        mock_process = Mock()
-        mock_popen.return_value = mock_process
+        # Mock the GitHub calls
+        mock_get_url.return_value = "https://github.com/user/repo.git"
+        mock_extract.return_value = "user/repo"
+        mock_fetch.return_value = GitHubIssue(
+            number=456,
+            title="Test Issue",
+            body="Test body",
+            state="open",
+            author=GitHubUser(login="testuser"),
+            assignees=[],
+            labels=[],
+            comments=[],
+            createdAt="2024-01-01T00:00:00Z",
+            updatedAt="2024-01-01T00:00:00Z",
+            url="https://github.com/user/repo/issues/456",
+        )
+        mock_logger.return_value = Mock()
 
         app = create_fastapi_app("test-tunnel", 8001)
         client = TestClient(app)

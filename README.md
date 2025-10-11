@@ -43,13 +43,13 @@ sdlc --help
 
 See [sdlc/README.md](sdlc/README.md) for detailed documentation.
 
-## AI Developer Workflow (ADW) with @agent
+## AI Developer Workflow (ADW) with sdlc
 
 The SDLC tool includes an AI-powered development workflow that can be triggered via GitHub issue comments. This feature enables automated end-to-end development workflows from issue to pull request.
 
 ### How it Works
 
-1. **Trigger**: Comment on a GitHub issue with `@agent`
+1. **Trigger**: Comment on a GitHub issue with `sdlc`
 2. **Execution**: The system automatically:
    - Creates a feature branch
    - Generates an implementation plan
@@ -58,16 +58,16 @@ The SDLC tool includes an AI-powered development workflow that can be triggered 
 
 ### Usage
 
-There are two ways to use the @agent feature:
+There are two ways to use the sdlc feature:
 
 #### 1. Explicit Command Specification
 
 Specify the exact workflow type in your comment:
 
 ```
-@agent /feature add dark mode support
-@agent /bug fix login validation error
-@agent /chore update dependencies
+sdlc /feature add dark mode support
+sdlc /bug fix login validation error
+sdlc /chore update dependencies
 ```
 
 #### 2. Automatic Classification
@@ -75,8 +75,8 @@ Specify the exact workflow type in your comment:
 Let the AI classify the issue automatically:
 
 ```
-@agent please implement this feature
-@agent can you help with this?
+sdlc please implement this feature
+sdlc can you help with this?
 ```
 
 The system will analyze the issue title and description to determine if it's a feature, bug, or chore.
@@ -86,10 +86,10 @@ The system will analyze the issue title and description to determine if it's a f
 Generate a plan without implementation by adding a plan-only flag:
 
 ```
-@agent /feature add dark mode --plan-only
-@agent /bug fix login plan only
-@agent /chore update deps don't implement
-@agent create a plan for this feature no implementation
+sdlc /feature add dark mode --plan-only
+sdlc /bug fix login plan only
+sdlc /chore update deps don't implement
+sdlc create a plan for this feature no implementation
 ```
 
 **Supported flags:**
@@ -113,7 +113,7 @@ This is useful when you want to:
 
 ### Command Resolution
 
-The @agent system intelligently resolves slash commands:
+The sdlc system intelligently resolves slash commands:
 1. First checks for user-defined commands (`/feature`, `/bug`, `/chore`)
 2. Falls back to built-in SDLC commands (`/sdlc:feature`, `/sdlc:bug`, `/sdlc:chore`)
 
@@ -121,15 +121,14 @@ The @agent system intelligently resolves slash commands:
 
 #### Full Workflow (default)
 
-When you trigger `@agent` without plan-only flags:
+When you trigger `sdlc` without plan-only flags:
 
 1. **Branch Creation** - Creates a git branch using `/branch` command
 2. **Plan Generation** - Builds an implementation plan using the classified command
-3. **Plan Commit** - Commits the plan to git
-4. **Plan Location** - Locates the created plan file using `/locate` command
-5. **Implementation** - Implements the solution using `/implement` command
-6. **Implementation Commit** - Commits the implementation
-7. **Pull Request** - Creates a PR using `/pull_request` command
+3. **Plan Location** - Locates the created plan file (while untracked)
+4. **Implementation** - Implements the solution using `/implement` command
+5. **Commit** - Commits everything (plan + implementation together)
+6. **Pull Request** - Creates a PR using `/pull_request` command
 
 #### Plan-Only Workflow
 
@@ -137,14 +136,14 @@ When you add a plan-only flag:
 
 1. **Branch Creation** - Creates a git branch using `/branch` command
 2. **Plan Generation** - Builds an implementation plan using the classified command
-3. **Plan Commit** - Commits the plan to git
+3. **Commit** - Commits the plan to git
 4. **Done** - Workflow stops here
 
 The plan is committed and ready for review. You can then manually implement or trigger the full workflow later.
 
 ### Setup
 
-To use the @agent feature, ensure:
+To use the sdlc feature, ensure:
 
 1. **Claude Code CLI** is installed and available in your PATH
 2. **GitHub Watcher** is running:
@@ -174,13 +173,13 @@ curl http://localhost:8001/health
 # Comment on a GitHub issue:
 
 # Full workflow (generates plan + implements + creates PR)
-# "@agent /feature add user profile page"
-# "@agent please fix this bug"
+# "sdlc /feature add user profile page"
+# "sdlc please fix this bug"
 
 # Plan-only workflow (generates plan only)
-# "@agent /feature add user profile page --plan-only"
-# "@agent /bug fix this issue plan only"
-# "@agent create a plan for this don't implement"
+# "sdlc /feature add user profile page --plan-only"
+# "sdlc /bug fix this issue plan only"
+# "sdlc create a plan for this don't implement"
 ```
 
 The watcher will detect the comment, execute the workflow, and post updates to the issue as it progresses.
