@@ -42,17 +42,18 @@ class TestCheckClaudeInstalled:
 class TestExecuteClaudeCommand:
     """Tests for execute_claude_command function."""
 
-    @patch('subprocess.run')
-    def test_successful_execution(self, mock_run):
+    @patch('subprocess.Popen')
+    def test_successful_execution(self, mock_popen):
         """Test successful command execution."""
-        mock_run.return_value = Mock(
-            returncode=0,
-            stdout='{"session_id": "test-123", "result": "Success"}',
-            stderr=''
-        )
+        mock_process = Mock()
+        mock_process.returncode = 0
+        mock_process.stdout = iter(['{"session_id": "test-123", "result": "Success"}\n'])
+        mock_process.stderr = Mock()
+        mock_process.wait = Mock()
+        mock_popen.return_value = mock_process
 
         success, output, session_id = execute_claude_command(
-            command=["claude", "chat", "--prompt", "test"],
+            command=["claude", "--print", "test"],
             adw_id="test-adw",
         )
 
@@ -60,17 +61,18 @@ class TestExecuteClaudeCommand:
         assert output == "Success"
         assert session_id == "test-123"
 
-    @patch('subprocess.run')
-    def test_failed_execution(self, mock_run):
+    @patch('subprocess.Popen')
+    def test_failed_execution(self, mock_popen):
         """Test failed command execution."""
-        mock_run.return_value = Mock(
-            returncode=1,
-            stdout='',
-            stderr='Error occurred'
-        )
+        mock_process = Mock()
+        mock_process.returncode = 1
+        mock_process.stdout = iter([])
+        mock_process.stderr.read = Mock(return_value='Error occurred')
+        mock_process.wait = Mock()
+        mock_popen.return_value = mock_process
 
         success, output, session_id = execute_claude_command(
-            command=["claude", "chat", "--prompt", "test"],
+            command=["claude", "--print", "test"],
             adw_id="test-adw",
         )
 
@@ -78,13 +80,16 @@ class TestExecuteClaudeCommand:
         assert "Error occurred" in output
         assert session_id is None
 
-    @patch('subprocess.run')
-    def test_timeout(self, mock_run):
+    @patch('subprocess.Popen')
+    def test_timeout(self, mock_popen):
         """Test command timeout."""
-        mock_run.side_effect = subprocess.TimeoutExpired(cmd='claude', timeout=600)
+        mock_process = Mock()
+        mock_process.stdout = iter([])
+        mock_process.wait = Mock(side_effect=subprocess.TimeoutExpired(cmd='claude', timeout=10))
+        mock_popen.return_value = mock_process
 
         success, output, session_id = execute_claude_command(
-            command=["claude", "chat", "--prompt", "test"],
+            command=["claude", "--print", "test"],
             adw_id="test-adw",
             timeout=10
         )

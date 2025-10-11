@@ -65,66 +65,85 @@ def execute_claude_command(
         command.insert(insert_pos + 2, "stream-json")
 
     try:
-        # Execute the command
-        result = subprocess.run(
+        # Set up JSONL file if agent_name is provided
+        jsonl_file_handle = None
+        agent_dir = None
+
+        if agent_name:
+            agent_dir = os.path.join("agents", adw_id, agent_name)
+            os.makedirs(agent_dir, exist_ok=True)
+            # Create a temp file that we'll rename once we get the session_id
+            temp_jsonl = os.path.join(agent_dir, "streaming.jsonl")
+            jsonl_file_handle = open(temp_jsonl, 'w')
+            if logger:
+                logger.debug(f"Streaming JSONL to: {temp_jsonl}")
+
+        # Execute the command with streaming output
+        process = subprocess.Popen(
             command,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            timeout=timeout,
             env=os.environ.copy()
         )
 
-        if logger:
-            # Log full stdout for debugging
-            logger.debug(f"Full stdout:\n{result.stdout}")
-            if result.stderr:
-                logger.debug(f"Stderr: {result.stderr}")
+        # Stream output line by line
+        session_id = None
+        output_text = ""
+        all_lines = []
 
-        if result.returncode != 0:
-            error_msg = f"Claude command failed with code {result.returncode}: {result.stderr}"
+        if logger:
+            logger.debug("Streaming Claude output...")
+
+        for line in process.stdout:
+            all_lines.append(line)
+
+            # Write to JSONL file immediately
+            if jsonl_file_handle:
+                jsonl_file_handle.write(line)
+                jsonl_file_handle.flush()  # Ensure it's written immediately
+
+            # Try to parse each line for session_id and result
+            try:
+                data = json.loads(line.strip())
+                if 'session_id' in data:
+                    session_id = data.get('session_id')
+                if 'result' in data:
+                    output_text = data.get('result', output_text)
+
+                # Log JSONL events at debug level
+                if logger and data.get('type'):
+                    event_type = data.get('type')
+                    if event_type == 'result':
+                        logger.debug(f"Claude session completed: {session_id}")
+                    elif event_type == 'tool_use':
+                        tool_name = data.get('content', {}).get('name', 'unknown')
+                        logger.debug(f"Tool use: {tool_name}")
+            except json.JSONDecodeError:
+                # Not JSON, skip
+                pass
+
+        # Wait for process to complete
+        process.wait(timeout=timeout)
+
+        # Close JSONL file handle
+        if jsonl_file_handle:
+            jsonl_file_handle.close()
+
+            # Rename temp file to include session_id
+            if session_id:
+                final_jsonl = os.path.join(agent_dir, f"{session_id}.jsonl")
+                os.rename(temp_jsonl, final_jsonl)
+                if logger:
+                    logger.debug(f"Saved JSONL output to: {final_jsonl}")
+
+        # Check return code
+        if process.returncode != 0:
+            stderr = process.stderr.read() if process.stderr else ""
+            error_msg = f"Claude command failed with code {process.returncode}: {stderr}"
             if logger:
                 logger.error(error_msg)
-                logger.debug(f"Failed stdout: {result.stdout}")
             return False, error_msg, None
-
-        # Parse the JSONL output to get session ID and result
-        session_id = None
-        output_text = result.stdout
-
-        # Try to parse JSONL output (last line should contain session info)
-        output_lines = output_text.strip().split('\n')
-        for line in reversed(output_lines):
-            if line.strip():
-                try:
-                    data = json.loads(line)
-                    if 'session_id' in data:
-                        session_id = data.get('session_id')
-                    if 'result' in data:
-                        output_text = data.get('result', output_text)
-                    if logger:
-                        logger.debug(f"Parsed JSONL data: {json.dumps(data, indent=2)}")
-                    break
-                except json.JSONDecodeError:
-                    # Not JSON, use raw output
-                    pass
-
-        # Save JSONL output to file if agent_name is provided
-        if agent_name and session_id:
-            try:
-                # Create directory: agents/{adw_id}/{agent_name}/
-                agent_dir = os.path.join("agents", adw_id, agent_name)
-                os.makedirs(agent_dir, exist_ok=True)
-
-                # Save JSONL output
-                jsonl_file = os.path.join(agent_dir, f"{session_id}.jsonl")
-                with open(jsonl_file, 'w') as f:
-                    f.write(result.stdout)
-
-                if logger:
-                    logger.debug(f"Saved JSONL output to: {jsonl_file}")
-            except Exception as e:
-                if logger:
-                    logger.warning(f"Failed to save JSONL output: {e}")
 
         if logger:
             logger.debug(f"Command succeeded. Session ID: {session_id}")
