@@ -56,11 +56,13 @@ def execute_claude_command(
         logger.debug(f"Executing Claude command: {' '.join(command)}")
 
     # Add --output-format stream-json to get JSONL output
+    # This requires --verbose when used with --print
     if "--output-format" not in command:
         # Find position to insert (after --print, before the prompt)
         insert_pos = command.index("--print") + 1 if "--print" in command else 1
-        command.insert(insert_pos, "--output-format")
-        command.insert(insert_pos + 1, "stream-json")
+        command.insert(insert_pos, "--verbose")
+        command.insert(insert_pos + 1, "--output-format")
+        command.insert(insert_pos + 2, "stream-json")
 
     try:
         # Execute the command
