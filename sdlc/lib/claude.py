@@ -192,6 +192,7 @@ def execute_slash_command(
         "claude",
         "--print",
         "--model", model,
+        "--dangerously-skip-permissions",  # Skip approval prompts for automated execution
         prompt,
     ]
 
@@ -247,6 +248,7 @@ def execute_prompt(
         "claude",
         "--print",
         "--model", model,
+        "--dangerously-skip-permissions",  # Skip approval prompts for automated execution
     ]
 
     # Add session ID if provided for multi-turn
