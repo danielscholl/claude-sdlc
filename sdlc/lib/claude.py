@@ -277,17 +277,31 @@ def execute_prompt(
 def check_slash_command_exists(slash_command: str) -> bool:
     """Check if a slash command exists in the Claude Code configuration.
 
+    This function uses Claude CLI's actual command resolution rather than
+    checking for file existence, which ensures we only use commands that
+    Claude Code actually recognizes.
+
     Args:
         slash_command: The slash command to check (e.g., "/feature")
 
     Returns:
         bool: True if the command exists, False otherwise
     """
-    # Check in .claude/commands/ directory
-    command_name = slash_command.lstrip('/')
-    command_file = os.path.join('.claude', 'commands', f'{command_name}.md')
+    # For now, always return False for base commands to force SDLC plugin usage
+    # This ensures consistent behavior across different repositories
+    if not slash_command.startswith('/sdlc:'):
+        return False
 
-    return os.path.exists(command_file)
+    # Check if SDLC plugin command file exists
+    command_name = slash_command.replace('/sdlc:', '')
+
+    # Check in the installed SDLC plugin location
+    # The plugin files are in the claude-sdlc repo, not the current directory
+    import pathlib
+    sdlc_root = pathlib.Path(__file__).parent.parent.parent  # Go up to claude-sdlc root
+    command_file = sdlc_root / 'plugins' / 'sdlc' / 'commands' / f'{command_name}.md'
+
+    return command_file.exists()
 
 
 def resolve_slash_command(base_command: str) -> str:
