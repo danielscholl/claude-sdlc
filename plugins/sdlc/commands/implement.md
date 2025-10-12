@@ -1,7 +1,7 @@
 ---
 description: Meta Prompt for implementing detailed plans.
 argument-hint: [path-to-spec-file]
-allowed-tools: Edit, Write, Read, Bash(git*), Glob, Grep
+allowed-tools: Edit, Write, Read, Bash(git:*), Glob, Grep
 ---
 
 <plan-implementation>
