@@ -154,7 +154,7 @@ def create_branch(
 
     # Resolve the branch command
     branch_command = resolve_slash_command("/branch")
-    logger.debug(f"Resolved branch command: {branch_command}")
+    logger.info(f"Executing slash command: {branch_command}")
 
     # Remove leading slash from issue_class for the argument
     issue_type = issue_class.replace("/", "")
@@ -197,11 +197,10 @@ def build_plan(
         Tuple[Optional[str], Optional[str]]: (plan_output, error_message)
     """
     logger.info(f"=== Building implementation plan ===")
-    logger.debug(f"Using command: {command}")
 
     # Resolve the command (check user-defined first, then SDLC plugin)
     resolved_command = resolve_slash_command(command)
-    logger.debug(f"Resolved command: {resolved_command}")
+    logger.info(f"Executing slash command: {resolved_command}")
 
     # Execute the planning command
     response = execute_slash_command(
@@ -367,7 +366,7 @@ def implement_plan(
 
     # Resolve the implement command
     implement_command = resolve_slash_command("/implement")
-    logger.debug(f"Resolved implement command: {implement_command}")
+    logger.info(f"Executing slash command: {implement_command}")
 
     # Execute the /implement command
     response = execute_slash_command(
@@ -413,7 +412,7 @@ def create_pull_request(
 
     # Resolve the pull_request command
     pr_command = resolve_slash_command("/pull_request")
-    logger.debug(f"Resolved PR command: {pr_command}")
+    logger.info(f"Executing slash command: {pr_command}")
 
     # Execute the /pull_request command
     response = execute_slash_command(

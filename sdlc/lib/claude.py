@@ -196,8 +196,7 @@ def execute_slash_command(
     ]
 
     if logger:
-        logger.info(f"Executing slash command: {slash_command}")
-        logger.debug(f"Command: {' '.join(command)}")
+        logger.debug(f"Full command: {' '.join(command)}")
         logger.debug(f"Args: {args}")
 
     # Use slash command name (without /) as agent name if not provided
