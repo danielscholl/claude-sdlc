@@ -226,7 +226,7 @@ def locate_plan_file(
     adw_id: str,
     logger: logging.Logger
 ) -> Tuple[Optional[str], Optional[str]]:
-    """Locate the plan file that was created using git status.
+    """Locate the plan file that was created using git status and ls.
 
     Args:
         plan_output: The output from the plan creation step (not used, kept for compatibility)
@@ -239,7 +239,7 @@ def locate_plan_file(
     logger.info("=== Locating plan file ===")
 
     try:
-        # Use git to find new untracked files in specs/ or ai-specs/ directories
+        # Use git to find new untracked files/directories in specs/ or ai-specs/ directories
         logger.debug("Checking git status for new spec files...")
         result = subprocess.run(
             ["git", "status", "--porcelain"],
@@ -250,7 +250,7 @@ def locate_plan_file(
 
         # Parse git status output
         # Format: XY PATH where X is staged status, Y is unstaged status
-        # ?? means untracked file
+        # ?? means untracked file/directory
         # A  means added/staged file
         logger.debug(f"Git status output:\n{result.stdout}")
 
@@ -259,12 +259,30 @@ def locate_plan_file(
             if not line:
                 continue
 
-            # Check for files in specs/ or ai-specs/ directories
-            if ('specs/' in line or 'ai-specs/' in line) and line.endswith('.md'):
-                # Extract file path (everything after the status code)
-                file_path = line[3:].strip()
-                spec_files.append(file_path)
-                logger.debug(f"Found spec file: {file_path}")
+            # Extract file/directory path (everything after the status code)
+            path = line[3:].strip()
+
+            # Check if it's a specs or ai-specs directory/file
+            if 'specs/' in path or 'ai-specs/' in path:
+                # If it's a directory (ends with /), list files inside
+                if path.endswith('/'):
+                    logger.debug(f"Found untracked directory: {path}")
+                    # List all .md files in the directory
+                    ls_result = subprocess.run(
+                        ["ls", "-1", path],
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    for filename in ls_result.stdout.strip().split('\n'):
+                        if filename.endswith('.md'):
+                            full_path = path + filename
+                            spec_files.append(full_path)
+                            logger.debug(f"Found spec file in directory: {full_path}")
+                # If it's a file ending with .md, add it directly
+                elif path.endswith('.md'):
+                    spec_files.append(path)
+                    logger.debug(f"Found spec file: {path}")
 
         if not spec_files:
             logger.error("No spec files found in git status")
@@ -276,7 +294,7 @@ def locate_plan_file(
         return file_path, None
 
     except subprocess.CalledProcessError as e:
-        error_msg = f"Git status failed: {e.stderr}"
+        error_msg = f"Git status or ls failed: {e.stderr}"
         logger.error(error_msg)
         return None, error_msg
     except Exception as e:
