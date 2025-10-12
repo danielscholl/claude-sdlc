@@ -226,10 +226,10 @@ def locate_plan_file(
     adw_id: str,
     logger: logging.Logger
 ) -> Tuple[Optional[str], Optional[str]]:
-    """Locate the plan file that was created using git status and ls.
+    """Locate the plan file that was created using the /locate slash command.
 
     Args:
-        plan_output: The output from the plan creation step (not used, kept for compatibility)
+        plan_output: The output from the plan creation step
         adw_id: The ADW workflow ID
         logger: Logger instance
 
@@ -238,69 +238,34 @@ def locate_plan_file(
     """
     logger.info("=== Locating plan file ===")
 
-    try:
-        # Use git to find new untracked files/directories in specs/ or ai-specs/ directories
-        logger.debug("Checking git status for new spec files...")
-        result = subprocess.run(
-            ["git", "status", "--porcelain"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
+    # Resolve the locate command
+    locate_command = resolve_slash_command("/locate")
+    logger.info(f"Executing slash command: {locate_command}")
 
-        # Parse git status output
-        # Format: XY PATH where X is staged status, Y is unstaged status
-        # ?? means untracked file/directory
-        # A  means added/staged file
-        logger.debug(f"Git status output:\n{result.stdout}")
+    # Execute the /locate command with the plan output as context
+    response = execute_slash_command(
+        slash_command=locate_command,
+        args=[plan_output],
+        adw_id=adw_id,
+        model="sonnet",
+        agent_name="locate",
+        logger=logger
+    )
 
-        spec_files = []
-        for line in result.stdout.strip().split('\n'):
-            if not line:
-                continue
+    logger.debug(f"Locate response: {response.model_dump_json(indent=2)}")
 
-            # Extract file/directory path (everything after the status code)
-            path = line[3:].strip()
+    if not response.success:
+        return None, response.output
 
-            # Check if it's a specs or ai-specs directory/file
-            if 'specs/' in path or 'ai-specs/' in path:
-                # If it's a directory (ends with /), list files inside
-                if path.endswith('/'):
-                    logger.debug(f"Found untracked directory: {path}")
-                    # List all .md files in the directory
-                    ls_result = subprocess.run(
-                        ["ls", "-1", path],
-                        capture_output=True,
-                        text=True,
-                        check=True
-                    )
-                    for filename in ls_result.stdout.strip().split('\n'):
-                        if filename.endswith('.md'):
-                            full_path = path + filename
-                            spec_files.append(full_path)
-                            logger.debug(f"Found spec file in directory: {full_path}")
-                # If it's a file ending with .md, add it directly
-                elif path.endswith('.md'):
-                    spec_files.append(path)
-                    logger.debug(f"Found spec file: {path}")
+    # Parse the response - should be just a file path or "0"
+    plan_file = response.output.strip()
 
-        if not spec_files:
-            logger.error("No spec files found in git status")
-            return None, "No plan file found in git status"
+    if plan_file == "0" or not plan_file:
+        logger.error("Could not locate plan file")
+        return None, "Plan file not found"
 
-        # Use the first spec file found (should only be one for this branch)
-        file_path = spec_files[0]
-        logger.info(f"Plan file located: {file_path}")
-        return file_path, None
-
-    except subprocess.CalledProcessError as e:
-        error_msg = f"Git status or ls failed: {e.stderr}"
-        logger.error(error_msg)
-        return None, error_msg
-    except Exception as e:
-        error_msg = f"Error locating plan file: {str(e)}"
-        logger.error(error_msg)
-        return None, error_msg
+    logger.info(f"Plan file located: {plan_file}")
+    return plan_file, None
 
 
 def commit_changes(
