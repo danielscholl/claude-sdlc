@@ -15,6 +15,9 @@ Install the SDLC plugin in Claude Code:
 
 The plugin provides slash commands for Claude Code to manage development workflows:
 
+- `/sdlc:install` - Install dependencies and run setup
+- `/sdlc:prime` - Analyze and understand the codebase
+- `/sdlc:reset` - Clean up untracked files
 - `/sdlc:feature [description]` - Create a new feature with plan and implementation
 - `/sdlc:bug [description]` - Fix a bug with plan and implementation
 - `/sdlc:chore [description]` - Handle maintenance tasks
@@ -22,18 +25,8 @@ The plugin provides slash commands for Claude Code to manage development workflo
 - `/sdlc:implement [spec-file]` - Implement from a plan file
 - `/sdlc:pull_request [spec-file]` - Create a pull request
 - `/sdlc:commit [spec-file]` - Commit changes
-- `/sdlc:prime` - Analyze and understand the codebase
-- `/sdlc:install` - Install dependencies and run setup
 - `/sdlc:locate [spec-file]` - Locate plan files
-- `/sdlc:reset` - Clean up untracked files
 - `/sdlc:tools` - List available development tools
-
-### Plan-Only Mode
-
-Add flags to generate only the plan without implementation:
-- `--plan-only`, `plan only`, `don't implement`, `no implementation`
-
-Example: `/sdlc:feature add dark mode --plan-only`
 
 ## CLI Tool Installation
 
@@ -89,6 +82,16 @@ The watcher enables autonomous execution of SDLC commands via GitHub issue comme
    # Plan-only
    sdlc /feature add dark mode --plan-only
    ```
+
+### Plan-Only Mode
+
+Add flags to generate only the plan without implementation:
+- `--plan-only`, `plan only`, `don't implement`, `no implementation`
+
+This is useful when you want to:
+- Review the approach before auto-implementing
+- Get human approval on the plan
+- Manually implement after planning
 
 ### Workflow
 
