@@ -2,185 +2,103 @@
 
 A Software Development Lifecycle for use with Claude Code.
 
-## Quick start
+## Quick Start (Plugin)
 
-Run Claude and add the marketplace:
+Install the SDLC plugin in Claude Code:
 
 ```
 /plugin marketplace add https://github.com/danielscholl/claude-sdlc
-```
-
-Then install the plugin:
-
-```
 /plugin install sdlc
 ```
 
-## SDLC CLI Tool
+## SDLC Slash Commands
 
-This project includes a unified CLI tool called **SDLC** (Software Development Lifecycle Commands) for managing development workflows.
+The plugin provides slash commands for Claude Code to manage development workflows:
 
-### Installation
+- `/feature [description]` - Create a new feature with plan and implementation
+- `/bug [description]` - Fix a bug with plan and implementation
+- `/chore [description]` - Handle maintenance tasks
+- `/branch [spec-file]` - Create a git branch
+- `/implement [spec-file]` - Implement from a plan file
+- `/pull_request [spec-file]` - Create a pull request
+- `/commit [spec-file]` - Commit changes
+- `/prime` - Analyze and understand the codebase
+- `/install` - Install dependencies and run setup
+- `/locate [spec-file]` - Locate plan files
+- `/reset` - Clean up untracked files
+- `/tools` - List available development tools
+
+### Plan-Only Mode
+
+Add flags to generate only the plan without implementation:
+- `--plan-only`, `plan only`, `don't implement`, `no implementation`
+
+Example: `/feature add dark mode --plan-only`
+
+## CLI Tool Installation
+
+The SDLC CLI tool enables automation via GitHub webhooks.
+
+### Install from GitHub (recommended)
 
 ```bash
-# From the project root directory
-uv sync
+# Install directly from GitHub
+uv tool install git+https://github.com/danielscholl/claude-sdlc
 
-# Install as a global tool (recommended - makes 'sdlc' available globally)
-uv tool install --editable .
-
-# Or run with 'uv run' prefix (no global install)
-# uv pip install -e .
-```
-
-### Usage
-
-```bash
-# If installed with 'uv tool install'
-sdlc health
+# Verify installation
 sdlc --help
+sdlc health
 ```
 
-See [sdlc/README.md](sdlc/README.md) for detailed documentation.
+### Install from local clone
 
-## AI Developer Workflow (ADW) with sdlc
+```bash
+# Clone and install locally
+git clone https://github.com/danielscholl/claude-sdlc
+cd claude-sdlc
+uv tool install --editable .
+```
 
-The SDLC tool includes an AI-powered development workflow that can be triggered via GitHub issue comments. This feature enables automated end-to-end development workflows from issue to pull request.
+See [sdlc/README.md](sdlc/README.md) for detailed CLI documentation.
 
-### How it Works
+## GitHub Watcher (Automation)
 
-1. **Trigger**: Comment on a GitHub issue with `sdlc`
-2. **Execution**: The system automatically:
-   - Creates a feature branch
-   - Generates an implementation plan
-   - Implements the solution
-   - Creates a pull request
+The watcher enables autonomous execution of SDLC commands via GitHub issue comments - no human input required.
+
+### Prerequisites
+
+- SDLC CLI tool installed (see above)
+- Claude Code CLI installed and in PATH
 
 ### Usage
 
-There are two ways to use the sdlc feature:
-
-#### 1. Explicit Command Specification
-
-Specify the exact workflow type in your comment:
-
-```
-sdlc /feature add dark mode support
-sdlc /bug fix login validation error
-sdlc /chore update dependencies
-```
-
-#### 2. Automatic Classification
-
-Let the AI classify the issue automatically:
-
-```
-sdlc please implement this feature
-sdlc can you help with this?
-```
-
-The system will analyze the issue title and description to determine if it's a feature, bug, or chore.
-
-#### 3. Plan-Only Mode
-
-Generate a plan without implementation by adding a plan-only flag:
-
-```
-sdlc /feature add dark mode --plan-only
-sdlc /bug fix login plan only
-sdlc /chore update deps don't implement
-sdlc create a plan for this feature no implementation
-```
-
-**Supported flags:**
-- `--plan-only`
-- `plan only`
-- `don't implement`
-- `no implementation`
-- `skip implementation`
-- `planning only`
-
-**What happens in plan-only mode:**
-1. Creates a feature branch
-2. Generates an implementation plan
-3. Commits the plan
-4. **Stops here** - no implementation, no PR
-
-This is useful when you want to:
-- Review the approach before auto-implementing
-- Get human approval on the plan
-- Manually implement after planning
-
-### Command Resolution
-
-The sdlc system intelligently resolves slash commands:
-1. First checks for user-defined commands (`/feature`, `/bug`, `/chore`)
-2. Falls back to built-in SDLC commands (`/sdlc:feature`, `/sdlc:bug`, `/sdlc:chore`)
-
-### Complete Workflow
-
-#### Full Workflow (default)
-
-When you trigger `sdlc` without plan-only flags:
-
-1. **Branch Creation** - Creates a git branch using `/branch` command
-2. **Plan Generation** - Builds an implementation plan using the classified command
-3. **Plan Location** - Locates the created plan file (while untracked)
-4. **Implementation** - Implements the solution using `/implement` command
-5. **Commit** - Commits everything (plan + implementation together)
-6. **Pull Request** - Creates a PR using `/pull_request` command
-
-#### Plan-Only Workflow
-
-When you add a plan-only flag:
-
-1. **Branch Creation** - Creates a git branch using `/branch` command
-2. **Plan Generation** - Builds an implementation plan using the classified command
-3. **Commit** - Commits the plan to git
-4. **Done** - Workflow stops here
-
-The plan is committed and ready for review. You can then manually implement or trigger the full workflow later.
-
-### Setup
-
-To use the sdlc feature, ensure:
-
-1. **Claude Code CLI** is installed and available in your PATH
-2. **GitHub Watcher** is running:
+1. Start the watcher:
    ```bash
-   sdlc watcher
+   sdlc watcher --port 8001
    ```
-3. **Webhook configured** to receive GitHub events (the watcher sets this up automatically)
+
+2. Comment on a GitHub issue with `sdlc`:
+   ```
+   # Explicit commands
+   sdlc /feature add user profile page
+   sdlc /bug fix login error
+
+   # AI classification (analyzes issue to determine type)
+   sdlc please implement this
+
+   # Plan-only
+   sdlc /feature add dark mode --plan-only
+   ```
+
+### Workflow
+
+**Full Automation** (default):
+1. Creates branch → 2. Generates plan → 3. Implements → 4. Commits → 5. Creates PR
+
+**Plan-Only**:
+1. Creates branch → 2. Generates plan → 3. Commits plan (stops here)
 
 ### Monitoring
 
-Each workflow execution is tracked with an ADW ID and logs are written to:
-```
-agents/{adw_id}/agent_workflow/execution.log
-```
-
-Check the logs to monitor progress and debug any issues.
-
-### Examples
-
-```bash
-# Start the watcher
-sdlc watcher --port 8001
-
-# In another terminal, check health
-curl http://localhost:8001/health
-
-# Comment on a GitHub issue:
-
-# Full workflow (generates plan + implements + creates PR)
-# "sdlc /feature add user profile page"
-# "sdlc please fix this bug"
-
-# Plan-only workflow (generates plan only)
-# "sdlc /feature add user profile page --plan-only"
-# "sdlc /bug fix this issue plan only"
-# "sdlc create a plan for this don't implement"
-```
-
-The watcher will detect the comment, execute the workflow, and post updates to the issue as it progresses.
+Logs are written to: `agents/{adw_id}/agent_workflow/execution.log`
 
