@@ -1,6 +1,6 @@
 ---
 description: Analyze unit tests and create comprehensive test documentation with Archon task management
-argument-hint: [optional-module-filter] [--plan]
+argument-hint: [optional-module-filter] [--file] [--plan]
 allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__manage_project, mcp__archon__manage_task
 ---
 
@@ -20,8 +20,7 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
       <rule name="archon-integration">NEVER skip, ONE task in "doing" at a time, track all phases</rule>
       <rule name="mature-wip-scoring">Score MATURE tests only (exclude ≤10% pass rate jobs), report WIP separately</rule>
       <rule name="state-separation">Current facts ≠ Future recommendations (label clearly: "Current State" vs "Recommended (Future)")</rule>
-      <rule name="file-directory-writing">Only write files to the directory ___ and create it if it doesn't exist</rule>
-      <rule name="file-writing">ONLY write `tests-info.md` if `--file` argument provided (otherwise output directly)</rule>
+      <rule name="file-writing">NEVER write any files to any place other then the directory ___</rule>
     </priority>
 
     <priority level="P1" label="MUST MAINTAIN">
