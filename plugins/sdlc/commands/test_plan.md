@@ -20,6 +20,7 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
       <rule name="archon-integration">NEVER skip, ONE task in "doing" at a time, track all phases</rule>
       <rule name="mature-wip-scoring">Score MATURE tests only (exclude ≤10% pass rate jobs), report WIP separately</rule>
       <rule name="state-separation">Current facts ≠ Future recommendations (label clearly: "Current State" vs "Recommended (Future)")</rule>
+      <rule name="file-directory-writing">Only write files to the directory ___ and create it if it doesn't exist</rule>
       <rule name="file-writing">ONLY write `tests-info.md` if `--file` argument provided (otherwise output directly)</rule>
     </priority>
 
@@ -586,11 +587,12 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
       </step>
 
       <step number="2" name="generate-documentation">
-        <location>tests-info.md in project root (ONLY if --file argument provided)</location>
+        <location>___/tests-info.md (in ___ directory, ONLY if --file argument provided)</location>
 
         <conditional>
           <if-file-flag>
-            <action>Write to tests-info.md</action>
+            <action>Create ___ directory if it doesn't exist</action>
+            <action>Write to ___/tests-info.md</action>
           </if-file-flag>
           <else>
             <action>Output directly (do NOT write file)</action>
@@ -674,13 +676,13 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
           <item>P2 Important: [Z]</item>
           <item>P3 Nice-to-have: [W]</item>
           <item>Effort distribution: Small:[A], Medium:[B], Large:[C] (if --plan provided)</item>
-          <item>Documentation: tests-info.md (if --file provided)</item>
+          <item>Documentation: ___/tests-info.md (if --file provided)</item>
         </summary>
       </step>
 
       <step number="3" name="provide-next-steps">
         <for-team>
-          <item>Review tests-info.md document</item>
+          <item>Review ___/tests-info.md document</item>
           <item>Prioritize P1 tasks for next sprint</item>
           <item>Create work items in team's tracking system (Jira, GitHub Issues, etc.)</item>
           <item>Update task estimates based on capacity</item>
@@ -803,7 +805,7 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
     </arg>
 
     <arg name="--file" optional="true" flag="true">
-      <description>Write results to tests-info.md file</description>
+      <description>Write results to ___/tests-info.md file (creates ___ directory if needed)</description>
       <default>Output directly, no file write</default>
     </arg>
 
@@ -815,15 +817,16 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <examples>
       <example command="partition-core">Analyze partition-core module, output directly</example>
-      <example command="--file">Analyze all modules, write to tests-info.md</example>
+      <example command="--file">Analyze all modules, write to ___/tests-info.md</example>
       <example command="--plan">Analyze all modules, output directly, create Archon tasks</example>
-      <example command="partition-core --file --plan">Analyze partition-core, write to tests-info.md, create Archon tasks</example>
+      <example command="partition-core --file --plan">Analyze partition-core, write to ___/tests-info.md, create Archon tasks</example>
     </examples>
   </arguments>
 
   <output>
     <if-file-flag>
-      <action>Write comprehensive test plan and assessment to tests-info.md</action>
+      <action>Create ___ directory if it doesn't exist</action>
+      <action>Write comprehensive test plan and assessment to ___/tests-info.md</action>
       <include>All sections from Documentation Schema</include>
       <exclude>Archon project IDs (tool-agnostic document)</exclude>
     </if-file-flag>
