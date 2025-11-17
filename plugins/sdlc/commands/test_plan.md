@@ -1,6 +1,6 @@
 ---
 description: Analyze unit tests and create comprehensive test documentation with Archon task management
-argument-hint: [optional-module-filter] [--file] [--plan]
+argument-hint: [optional-module-filter] [--plan]
 allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__manage_project, mcp__archon__manage_task
 ---
 
