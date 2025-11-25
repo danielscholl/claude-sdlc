@@ -7,6 +7,7 @@ A unified CLI tool for development workflow automation.
 import click
 from sdlc.commands.health import health
 from sdlc.commands.watcher import watcher
+from sdlc.commands.gitlab_watcher import gitlab_watcher
 
 
 @click.group()
@@ -30,6 +31,7 @@ def main():
 # Register commands
 main.add_command(health)
 main.add_command(watcher)
+main.add_command(gitlab_watcher)
 
 
 if __name__ == "__main__":
