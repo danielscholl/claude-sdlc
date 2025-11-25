@@ -2,7 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
 from click.testing import CliRunner
 
 from sdlc.commands.gitlab_watcher import gitlab_watcher
@@ -79,7 +78,7 @@ class TestGitlabWatcherCommand:
         mock_get_url.return_value = "https://test-tunnel-8002.region.devtunnels.ms/gl-webhook"
 
         # Run in standalone mode to avoid hanging
-        result = runner.invoke(gitlab_watcher, [], catch_exceptions=False, standalone_mode=False)
+        runner.invoke(gitlab_watcher, [], catch_exceptions=False, standalone_mode=False)
 
         mock_installed.assert_called_once()
         mock_authenticated.assert_called_once()
@@ -144,7 +143,7 @@ class TestGitlabWatcherCommand:
         mock_configure.return_value = True
         mock_get_url.return_value = "https://test-tunnel-8002.region.devtunnels.ms/gl-webhook"
 
-        result = runner.invoke(gitlab_watcher, [], standalone_mode=False)
+        runner.invoke(gitlab_watcher, [], standalone_mode=False)
 
         # Should have attempted login
         mock_login.assert_called_once()
@@ -177,7 +176,7 @@ class TestGitlabWatcherCommand:
         mock_configure.return_value = True
         mock_get_url.return_value = "https://test-tunnel-9000.region.devtunnels.ms/gl-webhook"
 
-        result = runner.invoke(gitlab_watcher, ["--port", "9000"], standalone_mode=False)
+        runner.invoke(gitlab_watcher, ["--port", "9000"], standalone_mode=False)
 
         mock_configure.assert_called_with("test-tunnel", 9000)
 
@@ -206,7 +205,7 @@ class TestGitlabWatcherCommand:
         mock_configure.return_value = True
         mock_get_url.return_value = "https://custom-tunnel-8002.region.devtunnels.ms/gl-webhook"
 
-        result = runner.invoke(
+        runner.invoke(
             gitlab_watcher, ["--tunnel-id", "custom-tunnel"], standalone_mode=False
         )
 

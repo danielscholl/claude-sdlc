@@ -7,6 +7,7 @@ including issue classification, plan generation, implementation, and merge reque
 This mirrors the functionality of agent.py but uses GitLab-specific models and API calls.
 """
 
+import json
 import logging
 from typing import Optional, Tuple
 
@@ -118,7 +119,6 @@ def create_gitlab_branch(
         "url": issue.web_url,
     }
 
-    import json
     # Execute the /branch slash command
     response = execute_slash_command(
         slash_command=branch_command,

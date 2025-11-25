@@ -7,7 +7,7 @@ including issues, merge requests, notes (comments), and related entities.
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class GitLabUser(BaseModel):
@@ -47,13 +47,10 @@ class GitLabNote(BaseModel):
     id: int
     body: str
     author: GitLabUser
-    created_at: datetime = Field(alias="created_at")
-    updated_at: Optional[datetime] = Field(None, alias="updated_at")
+    created_at: datetime
+    updated_at: Optional[datetime] = None
     system: bool = False
     noteable_type: Optional[str] = None
-
-    class Config:
-        populate_by_name = True
 
 
 class GitLabIssueListItem(BaseModel):
@@ -63,11 +60,8 @@ class GitLabIssueListItem(BaseModel):
     title: str
     description: Optional[str] = None
     labels: List[str] = []  # GitLab returns labels as list of strings in list view
-    created_at: datetime = Field(alias="created_at")
-    updated_at: datetime = Field(alias="updated_at")
-
-    class Config:
-        populate_by_name = True
+    created_at: datetime
+    updated_at: datetime
 
 
 class GitLabIssue(BaseModel):
@@ -82,13 +76,10 @@ class GitLabIssue(BaseModel):
     labels: List[str] = []  # GitLab returns labels as list of strings
     milestone: Optional[GitLabMilestone] = None
     notes: List[GitLabNote] = []  # GitLab calls comments "notes"
-    created_at: datetime = Field(alias="created_at")
-    updated_at: datetime = Field(alias="updated_at")
-    closed_at: Optional[datetime] = Field(None, alias="closed_at")
+    created_at: datetime
+    updated_at: datetime
+    closed_at: Optional[datetime] = None
     web_url: str
-
-    class Config:
-        populate_by_name = True
 
     @property
     def number(self) -> int:
@@ -120,10 +111,7 @@ class GitLabMergeRequest(BaseModel):
     source_branch: str
     target_branch: str
     web_url: str
-    created_at: datetime = Field(alias="created_at")
-    updated_at: datetime = Field(alias="updated_at")
-    merged_at: Optional[datetime] = Field(None, alias="merged_at")
-    closed_at: Optional[datetime] = Field(None, alias="closed_at")
-
-    class Config:
-        populate_by_name = True
+    created_at: datetime
+    updated_at: datetime
+    merged_at: Optional[datetime] = None
+    closed_at: Optional[datetime] = None

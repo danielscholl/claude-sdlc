@@ -38,18 +38,17 @@ def get_webhook_url_from_tunnel(
     return f"{base_url}{endpoint}"
 
 
-def get_project_id(project_path: str) -> Optional[str]:
-    """Get the GitLab project ID for API calls.
+def encode_project_path(project_path: str) -> str:
+    """URL-encode a project path for use in GitLab API calls.
 
-    GitLab API requires the project ID to be URL-encoded when used in paths.
+    GitLab API requires project paths to be URL-encoded when used in URL paths.
 
     Args:
         project_path: The project path (e.g., "owner/repo")
 
     Returns:
-        Optional[str]: URL-encoded project path for API use
+        str: URL-encoded project path for API use (e.g., "owner%2Frepo")
     """
-    # URL encode the project path for API calls
     return urllib.parse.quote(project_path, safe="")
 
 
@@ -64,7 +63,7 @@ def list_gitlab_webhooks(project_path: str) -> List[Dict]:
     """
     try:
         # URL encode the project path
-        encoded_path = get_project_id(project_path)
+        encoded_path = encode_project_path(project_path)
 
         cmd = ["glab", "api", f"projects/{encoded_path}/hooks"]
 
@@ -115,7 +114,7 @@ def create_gitlab_webhook(
     """
     try:
         # URL encode the project path
-        encoded_path = get_project_id(project_path)
+        encoded_path = encode_project_path(project_path)
 
         cmd = [
             "glab",
@@ -172,7 +171,7 @@ def delete_gitlab_webhook(project_path: str, webhook_id: int) -> bool:
     """
     try:
         # URL encode the project path
-        encoded_path = get_project_id(project_path)
+        encoded_path = encode_project_path(project_path)
 
         cmd = [
             "glab",

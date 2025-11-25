@@ -3,13 +3,11 @@
 import json
 from unittest.mock import Mock, patch
 
-import pytest
-
 from sdlc.lib.gitlab_webhook import (
     create_gitlab_webhook,
     delete_gitlab_webhook,
+    encode_project_path,
     ensure_webhook_configured,
-    get_project_id,
     get_webhook_url_from_tunnel,
     list_gitlab_webhooks,
     remove_devtunnel_webhooks,
@@ -52,17 +50,17 @@ class TestGetWebhookUrlFromTunnel:
         assert result is None
 
 
-class TestGetProjectId:
-    """Tests for get_project_id function."""
+class TestEncodeProjectPath:
+    """Tests for encode_project_path function."""
 
     def test_encodes_simple_path(self):
         """Test URL encoding of simple project path."""
-        result = get_project_id("owner/repo")
+        result = encode_project_path("owner/repo")
         assert result == "owner%2Frepo"
 
     def test_encodes_nested_path(self):
         """Test URL encoding of nested group path."""
-        result = get_project_id("group/subgroup/repo")
+        result = encode_project_path("group/subgroup/repo")
         assert result == "group%2Fsubgroup%2Frepo"
 
 

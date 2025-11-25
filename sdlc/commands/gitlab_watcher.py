@@ -11,6 +11,7 @@ import atexit
 import signal
 import subprocess
 import sys
+import threading
 from typing import Optional
 
 import click
@@ -190,13 +191,11 @@ def gitlab_watcher(remove: bool, port: int, tunnel_id: Optional[str]):
     tunnel_id_global = tunnel_id
 
     # Check if tunnel exists, create if not
-    tunnel_info = show_devtunnel(tunnel_id)
     tunnel_created = False
-    if not tunnel_info:
+    if not show_devtunnel(tunnel_id):
         if not create_devtunnel(tunnel_id):
             print("Error: Failed to create devtunnel")
             sys.exit(1)
-        tunnel_info = show_devtunnel(tunnel_id)
         tunnel_created = True
 
     # Configure port
@@ -262,9 +261,10 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
         # Wait for devtunnel to be ready by reading its output
         tunnel_ready = False
         timeout = 10  # 10 second timeout
-        start_time = asyncio.get_event_loop().time()
+        loop = asyncio.get_event_loop()
+        start_time = loop.time()
 
-        while (asyncio.get_event_loop().time() - start_time) < timeout:
+        while (loop.time() - start_time) < timeout:
             # Check if process exited
             if devtunnel_process.poll() is not None:
                 print("  Error: Devtunnel process exited unexpectedly")
@@ -282,6 +282,7 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
                         tunnel_ready = True
                         break
             except Exception:
+                # Readline may fail if stream is not ready; continue polling
                 pass
 
             await asyncio.sleep(0.1)
@@ -430,8 +431,7 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
                     except Exception as e:
                         logger.error(f"Agent workflow exception: {str(e)}")
 
-                # Import threading to run in background
-                import threading
+                # Run agent workflow in background thread
                 thread = threading.Thread(target=run_agent_workflow)
                 thread.daemon = True
                 thread.start()

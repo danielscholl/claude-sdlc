@@ -42,6 +42,7 @@ def get_gitlab_env() -> Optional[dict]:
         return None
 
     # Only create minimal env with GitLab token
+    # Note: glab CLI expects GITLAB_TOKEN directly (unlike gh CLI which uses GH_TOKEN)
     env = {
         "GITLAB_TOKEN": gitlab_token,
         "PATH": os.environ.get("PATH", ""),

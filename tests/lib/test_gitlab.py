@@ -2,6 +2,7 @@
 
 import json
 import os
+from subprocess import CalledProcessError
 from unittest.mock import Mock, patch
 
 import pytest
@@ -10,6 +11,7 @@ from sdlc.lib.gitlab import (
     create_merge_request,
     extract_project_path,
     fetch_issue,
+    fetch_issue_notes,
     fetch_open_issues,
     get_gitlab_env,
     get_gitlab_host,
@@ -294,8 +296,6 @@ class TestFetchOpenIssues:
     @patch("subprocess.run")
     def test_returns_empty_on_failure(self, mock_run, mock_env, capsys):
         """Test returns empty list on failure."""
-        from subprocess import CalledProcessError
-
         mock_env.return_value = {"GITLAB_TOKEN": "test"}
         mock_run.side_effect = CalledProcessError(1, "glab", stderr="Error")
 
@@ -393,3 +393,75 @@ class TestCreateMergeRequest:
         )
 
         assert result is None
+
+
+class TestFetchIssueNotes:
+    """Tests for fetch_issue_notes function."""
+
+    @patch("sdlc.lib.gitlab.get_gitlab_env")
+    @patch("subprocess.run")
+    def test_fetches_notes_successfully(self, mock_run, mock_env):
+        """Test successful notes fetch."""
+        mock_env.return_value = {"GITLAB_TOKEN": "test"}
+        mock_result = Mock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({
+            "iid": 123,
+            "notes": [
+                {
+                    "id": 1,
+                    "body": "First comment",
+                    "created_at": "2024-01-01T00:00:00Z",
+                },
+                {
+                    "id": 2,
+                    "body": "Second comment",
+                    "created_at": "2024-01-02T00:00:00Z",
+                },
+            ],
+        })
+        mock_run.return_value = mock_result
+
+        result = fetch_issue_notes("owner/repo", 123)
+        assert len(result) == 2
+        assert result[0]["body"] == "First comment"
+        assert result[1]["body"] == "Second comment"
+
+    @patch("sdlc.lib.gitlab.get_gitlab_env")
+    @patch("subprocess.run")
+    def test_returns_empty_on_failure(self, mock_run, mock_env, capsys):
+        """Test returns empty list on failure."""
+        mock_env.return_value = {"GITLAB_TOKEN": "test"}
+        mock_run.side_effect = CalledProcessError(1, "glab", stderr="Error")
+
+        result = fetch_issue_notes("owner/repo", 123)
+        assert result == []
+
+    @patch("sdlc.lib.gitlab.get_gitlab_env")
+    @patch("subprocess.run")
+    def test_sorts_notes_by_creation_time(self, mock_run, mock_env):
+        """Test that notes are sorted by creation time."""
+        mock_env.return_value = {"GITLAB_TOKEN": "test"}
+        mock_result = Mock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({
+            "iid": 123,
+            "notes": [
+                {
+                    "id": 2,
+                    "body": "Later comment",
+                    "created_at": "2024-01-02T00:00:00Z",
+                },
+                {
+                    "id": 1,
+                    "body": "Earlier comment",
+                    "created_at": "2024-01-01T00:00:00Z",
+                },
+            ],
+        })
+        mock_run.return_value = mock_result
+
+        result = fetch_issue_notes("owner/repo", 123)
+        # Should be sorted by created_at, earliest first
+        assert result[0]["created_at"] == "2024-01-01T00:00:00Z"
+        assert result[1]["created_at"] == "2024-01-02T00:00:00Z"
