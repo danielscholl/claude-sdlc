@@ -1,6 +1,8 @@
 .DS_Store
 *.log
 
+ai-examples/
+
 
 # Python
 __pycache__/
