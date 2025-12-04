@@ -1,0 +1,29 @@
+{
+  "name": "sdlc",
+  "version": "1.2.0",
+  "description": "Software development lifecycle automation - slash commands, agents, and GitHub/GitLab webhook watchers",
+  "author": {
+    "name": "Daniel Scholl",
+    "email": "daniel.scholl@microsoft.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sdlc",
+    "development",
+    "workflow",
+    "automation",
+    "github",
+    "gitlab",
+    "webhooks",
+    "ci-cd"
+  ],
+  "agents": [
+    "./agents/codebase-analyst.md",
+    "./agents/validator.md",
+    "./agents/architecture-strategist.md",
+    "./agents/pattern-recognition-specialist.md",
+    "./agents/code-simplicity-reviewer.md",
+    "./agents/performance-oracle.md",
+    "./agents/pr-comment-resolver.md"
+  ]
+}

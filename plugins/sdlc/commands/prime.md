@@ -1,188 +1,86 @@
 ---
 description: Prime understanding of the codebase by exploring files and reading documentation
-allowed-tools: Bash, Read, Glob, Grep, Task
+allowed-tools: Bash, Read, Glob, Grep
 ---
 
 <prime-command>
   <objective>
-    Build comprehensive understanding of the codebase structure, patterns, and conventions to prepare for effective development.
+    Build a lightweight understanding of codebase structure and conventions.
   </objective>
 
-  <phase number="1" name="project-overview">
-    <step name="explore-structure">
-      <action>Get complete file listing to understand project organization</action>
-      <command>git ls-files</command>
-      <purpose>Map out all tracked files and directory structure</purpose>
+  <constraints>
+    <rule>MINIMIZE context usage - aim for under 20k tokens total</rule>
+    <rule>DO NOT read source code files (.py, .ts, .js, etc.) - only list them</rule>
+    <rule>DO NOT read test files - only note their existence</rule>
+    <rule>DO NOT read agent definitions - only list available agents</rule>
+    <rule>DO NOT launch subagents - this is a quick overview only</rule>
+    <rule>ONLY read: README.md, config files (pyproject.toml, package.json), and CLAUDE.md</rule>
+  </constraints>
+
+  <phase number="1" name="structure-discovery">
+    <step name="file-listing">
+      <action>Get file listing and summarize structure</action>
+      <command>git ls-files | head -100</command>
+      <output>List directories and count files per directory - do not enumerate every file</output>
     </step>
 
     <step name="read-readme">
-      <action>Read primary documentation</action>
-      <file>README.md</file>
-      <extract>
-        <item>Project purpose and goals</item>
-        <item>Technology stack</item>
-        <item>Architecture overview</item>
-        <item>Development workflow</item>
-      </extract>
+      <action>Read README.md only</action>
+      <extract>Project purpose, tech stack, key commands</extract>
     </step>
   </phase>
 
-  <phase number="2" name="documentation-discovery">
-    <step name="command-structure">
-      <action>Understand available commands</action>
-      <read>
-        <file>.claude/commands/install.md</file>
-        <file>.claude/commands/feature.md</file>
-        <file>.claude/commands/implement.md</file>
-      </read>
-      <purpose>Learn development workflow and command capabilities</purpose>
+  <phase number="2" name="config-detection">
+    <step name="find-config">
+      <action>Identify which config file exists (only ONE)</action>
+      <priority>pyproject.toml > package.json > go.mod > Cargo.toml > pom.xml</priority>
+      <read>Read ONLY the first config file found</read>
     </step>
 
-    <step name="agent-capabilities">
-      <action>Review available agents if present</action>
-      <check>.claude/agents/</check>
-      <agents>
-        <agent>codebase-analyst</agent>
-        <agent>validator</agent>
-      </agents>
-    </step>
-
-    <step name="project-documentation">
-      <action>Explore documentation structure</action>
-      <directories>
-        <dir path="docs/specs/">Feature specifications</dir>
-        <dir path="docs/decisions/">Architecture Decision Records</dir>
-        <dir path="docs/design/">Requirements and design documents</dir>
-      </directories>
-    </step>
-
-    <step name="configuration-files">
-      <action>Check for project configuration and rules</action>
-      <files>
-        <file>CLAUDE.md</file>
-        <file>.claude/claude.md</file>
-        <file>cursorrules</file>
-        <file>.cursorrules</file>
-      </files>
+    <step name="check-claude-config">
+      <action>Check for CLAUDE.md if it exists</action>
+      <glob>**/CLAUDE.md</glob>
     </step>
   </phase>
 
-  <phase number="3" name="codebase-analysis">
-    <step name="identify-structure">
-      <action>Analyze main code directories</action>
-      <explore>
-        <directory>app/</directory>
-        <directory>src/</directory>
-        <directory>lib/</directory>
-        <directory>packages/</directory>
-        <directory>services/</directory>
-      </explore>
-      <identify>
-        <item>Main entry points</item>
-        <item>Core modules</item>
-        <item>Shared utilities</item>
-      </identify>
+  <phase number="3" name="inventory-only">
+    <step name="list-commands">
+      <action>List available slash commands (filenames only)</action>
+      <glob>.claude/commands/*.md OR plugins/*/commands/*.md</glob>
+      <output>List names only, do not read contents</output>
     </step>
 
-    <step name="technology-detection">
-      <action>Identify technologies and frameworks</action>
-      <config-files>
-        <file>package.json</file>
-        <file>pyproject.toml</file>
-        <file>requirements.txt</file>
-        <file>go.mod</file>
-        <file>Cargo.toml</file>
-        <file>pom.xml</file>
-        <file>build.gradle</file>
-        <file>Gemfile</file>
-        <file>composer.json</file>
-      </config-files>
+    <step name="list-agents">
+      <action>List available agents (filenames only)</action>
+      <glob>.claude/agents/*.md OR plugins/*/agents/*.md</glob>
+      <output>List names only, do not read contents</output>
     </step>
 
-    <step name="test-structure">
-      <action>Understand testing approach</action>
-      <explore>
-        <directory>tests/</directory>
-        <directory>test/</directory>
-        <directory>spec/</directory>
-        <directory>__tests__/</directory>
-      </explore>
-      <identify>
-        <item>Test framework</item>
-        <item>Test organization</item>
-        <item>Coverage approach</item>
-      </identify>
+    <step name="list-tests">
+      <action>Note test directory existence</action>
+      <glob>tests/**/*.py OR test/**/*.js OR __tests__/**/*</glob>
+      <output>Report count only (e.g., "12 test files found")</output>
     </step>
   </phase>
 
-  <phase number="4" name="pattern-discovery">
-    <step name="launch-analyst" optional="true">
-      <condition>For deep pattern analysis</condition>
-      <action>Launch codebase-analyst agent using Task tool</action>
-      <purpose>Discover architecture patterns, conventions, and best practices</purpose>
-    </step>
-
-    <step name="quick-patterns">
-      <action>Identify common patterns</action>
-      <search>
-        <pattern>API endpoints</pattern>
-        <pattern>Database models</pattern>
-        <pattern>Component structure</pattern>
-        <pattern>Service layers</pattern>
-      </search>
-    </step>
+  <phase number="4" name="summarize">
+    <format>Concise markdown summary with:</format>
+    <sections>
+      <section>Project: 1-2 sentence description</section>
+      <section>Tech: Language, framework, package manager</section>
+      <section>Structure: Key directories (3-5 max)</section>
+      <section>Commands: List available /commands</section>
+      <section>Agents: List available agents</section>
+      <section>Tests: Framework and count</section>
+      <section>Next: What to run for deeper analysis</section>
+    </sections>
   </phase>
 
-  <phase number="5" name="summarize">
-    <summary>
-      <section name="Project Overview">
-        <item>Purpose and main functionality</item>
-        <item>Target users and use cases</item>
-      </section>
-
-      <section name="Technology Stack">
-        <item>Primary language and framework</item>
-        <item>Key dependencies and libraries</item>
-        <item>Build and deployment tools</item>
-      </section>
-
-      <section name="Architecture">
-        <item>High-level structure</item>
-        <item>Main components and their relationships</item>
-        <item>Data flow and processing</item>
-      </section>
-
-      <section name="Development Workflow">
-        <item>Available commands (/install, /feature, /implement)</item>
-        <item>Documentation structure (specs, ADRs, requirements)</item>
-        <item>Testing approach</item>
-      </section>
-
-      <section name="Patterns and Conventions">
-        <item>Coding standards observed</item>
-        <item>File and directory naming</item>
-        <item>Common implementation patterns</item>
-      </section>
-
-      <section name="Key Files and Directories">
-        <item>Main entry points</item>
-        <item>Core business logic locations</item>
-        <item>Configuration files</item>
-      </section>
-
-      <section name="Next Steps">
-        <item>Recommended starting points</item>
-        <item>Areas needing attention</item>
-        <item>Suggested improvements</item>
-      </section>
-    </summary>
-  </phase>
-
-  <instructions>
-    <guideline>Execute phases sequentially for comprehensive understanding</guideline>
-    <guideline>Focus on understanding overall architecture before details</guideline>
-    <guideline>Note any inconsistencies or areas for improvement</guideline>
-    <guideline>Identify the most important patterns to follow</guideline>
-    <guideline>Create actionable summary for future development</guideline>
-  </instructions>
+  <anti-patterns>
+    <avoid>Reading full source files to "understand patterns"</avoid>
+    <avoid>Reading test files to "understand testing approach"</avoid>
+    <avoid>Reading multiple similar files</avoid>
+    <avoid>Launching codebase-analyst agent (use /feature for deep analysis)</avoid>
+    <avoid>Producing multi-page summaries</avoid>
+  </anti-patterns>
 </prime-command>

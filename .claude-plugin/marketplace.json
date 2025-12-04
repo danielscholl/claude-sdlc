@@ -1,25 +1,18 @@
 {
-  "name": "danielscholl",
+  "name": "sdlc",
   "owner": {
     "name": "Daniel Scholl",
-    "url": "https://github.com/danielscholl"
-  },
-  "metadata": {
-    "description": "Official Every plugin marketplace for Claude Code extensions",
-    "version": "1.1.1"
+    "email": "daniel.scholl@microsoft.com"
   },
   "plugins": [
     {
       "name": "sdlc",
-      "description": "Day to day software development lifecycle tasks, powered by AI.",
-      "version": "1.1.1",
-      "author": {
-        "name": "Daniel Scholl",
-        "url": "https://github.com/danielscholl"
-      },
-      "homepage": "https://github.com/EveryInc/compounding-engineering-plugin",
-      "tags": ["ai-powered", "sdlc", "workflow-automation"],
-      "source": "./plugins/sdlc"
+      "source": "./plugins/sdlc",
+      "description": "Software development lifecycle automation - slash commands, agents, and GitHub/GitLab webhook watchers"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Claude Code plugins for software development lifecycle automation",
+    "version": "1.2.0"
+  }
 }
