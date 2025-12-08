@@ -1,6 +1,6 @@
 {
   "name": "sdlc",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Software development lifecycle automation - slash commands, agents, and GitHub/GitLab webhook watchers",
   "author": {
     "name": "Daniel Scholl",
