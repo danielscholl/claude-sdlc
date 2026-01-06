@@ -16,7 +16,9 @@ Execute these steps for each comment:
 3. Plan the resolution
 4. Implement the change
 5. Verify the resolution
-6. Report completion with structured summary
+6. **Post reply to the PR comment** (MANDATORY - use gh/glab api)
+7. **Resolve the conversation thread** (GitHub: use GraphQL mutation)
+8. Report completion with structured summary
 
 ## Phase 1: Fetch PR Comments
 
@@ -239,23 +241,40 @@ pytest tests/test_user_service.py  # Python
 npm test -- --grep "user"          # JavaScript
 ```
 
-## Phase 6: Report Resolution
+## Phase 6: Post Replies and Report Resolution
 
-### Reply to Comment (GitHub)
+**CRITICAL: You MUST post a reply to each resolved comment. This is not optional.**
 
+For each comment you resolved, execute the appropriate reply command:
+
+### Step 1: Post Reply to Each Resolved Comment
+
+**GitHub - Execute this for each resolved comment:**
 ```bash
-# Reply to a review comment
 gh api --method POST repos/{owner}/{repo}/pulls/{pr-number}/comments/{comment-id}/replies \
-  -f body="Fixed in latest commit. [description of change]"
+  -f body="✅ Resolved: [brief description of what was changed]"
 ```
 
-### Reply to Comment (GitLab)
-
+**GitLab - Execute this for each resolved comment:**
 ```bash
-# Reply to discussion
 glab api --method POST projects/{project-id}/merge_requests/{mr-iid}/discussions/{discussion-id}/notes \
-  -f body="Addressed. [description of change]"
+  -f body="✅ Resolved: [brief description of what was changed]"
 ```
+
+### Step 2: Resolve the Thread (GitHub only)
+
+After posting the reply, resolve the review thread:
+```bash
+# Get the GraphQL node ID for the thread and resolve it
+gh api graphql -f query='
+  mutation {
+    resolveReviewThread(input: {threadId: "{thread-node-id}"}) {
+      thread { isResolved }
+    }
+  }'
+```
+
+### Step 3: Generate Resolution Report
 
 ## Output Format
 
@@ -395,6 +414,8 @@ recommendation: "Create follow-up issue/ticket for this improvement"
 
 ## Key Guidelines
 
+- **ALWAYS post a reply to the PR comment after resolving it** - this is mandatory, not optional
+- **ALWAYS resolve/close the conversation thread** after posting the reply
 - Stay focused on the specific comment being addressed
 - Don't make unnecessary changes beyond what was requested
 - If unclear, state interpretation and ask for clarification

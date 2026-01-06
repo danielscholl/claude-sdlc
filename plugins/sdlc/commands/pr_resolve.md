@@ -202,9 +202,21 @@ Co-Authored-By: Claude &lt;noreply@anthropic.com&gt;</commit-message-format>
     </step>
 
     <step order="5">
-      <action>Post resolution replies to PR comments (optional)</action>
+      <action>Post resolution replies to PR comments (MANDATORY)</action>
+      <description>Each pr-comment-resolver agent posts its own reply. Verify all comments have replies.</description>
       <github>
-        <command>gh api --method POST repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -f body="Resolved in latest commit"</command>
+        <command>gh api --method POST repos/{owner}/{repo}/pulls/{pr_number}/comments/{comment_id}/replies -f body="✅ Resolved: [description]"</command>
+      </github>
+      <gitlab>
+        <command>glab api --method POST projects/{project}/merge_requests/{mr_iid}/discussions/{discussion_id}/notes -f body="✅ Resolved: [description]"</command>
+      </gitlab>
+    </step>
+
+    <step order="6">
+      <action>Resolve conversation threads (GitHub)</action>
+      <description>Mark review threads as resolved after posting replies</description>
+      <github>
+        <command>gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "{thread_node_id}"}) { thread { isResolved } } }'</command>
       </github>
     </step>
   </phase>
