@@ -80,7 +80,7 @@ allowed-tools: Bash, Read, Glob, Grep
     <avoid>Reading full source files to "understand patterns"</avoid>
     <avoid>Reading test files to "understand testing approach"</avoid>
     <avoid>Reading multiple similar files</avoid>
-    <avoid>Launching codebase-analyst agent (use /feature for deep analysis)</avoid>
+    <avoid>Launching subagents (use /feature for deep analysis)</avoid>
     <avoid>Producing multi-page summaries</avoid>
   </anti-patterns>
 </prime-command>

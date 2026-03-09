@@ -1,6 +1,6 @@
 [project]
 name = "sdlc"
-version = "0.1.0"
+version = "0.2.0"
 description = "Software Development Lifecycle Commands - A unified CLI tool for development workflows"
 readme = "README.md"
 authors = [

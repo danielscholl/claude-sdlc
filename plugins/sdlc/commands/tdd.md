@@ -1,7 +1,7 @@
 ---
 description: Implement features using strict Test-Driven Development (Red-Green-Refactor cycle)
 argument-hint: [feature-description-or-spec-path]
-allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_project, mcp__archon__manage_task
+allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task
 ---
 
 <tdd-command>
@@ -97,13 +97,7 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_pr
       <fallback>If no watcher available, run tests manually after each change</fallback>
     </step>
 
-    <step number="3" name="archon-setup" optional="true">
-      <condition>If Archon MCP is configured</condition>
-      <action>Create or find project for TDD session</action>
-      <command>mcp__archon__manage_project("create", title="TDD: [feature name]")</command>
-    </step>
-
-    <step number="4" name="understand-requirement">
+    <step number="3" name="understand-requirement">
       <action>Parse the feature description or read spec file</action>
       <action>Break down into testable increments</action>
       <action>Identify first behavior to implement</action>
@@ -157,7 +151,6 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_pr
 
     <step number="4" name="document-failure">
       <action>Show the failing test output to confirm RED state</action>
-      <archon optional="true">Update task description with expected behavior</archon>
     </step>
 
     <critical>If test passes, the test is WRONG - it doesn't test new behavior</critical>
@@ -263,16 +256,8 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_pr
       <step>Enter GREEN phase (minimal implementation)</step>
       <step>Enter REFACTOR phase (improve code)</step>
       <step>Commit the increment (optional)</step>
-      <step>Update Archon task progress (if configured)</step>
       <step>Return to start for next behavior</step>
     </iteration-flow>
-
-    <archon-tracking optional="true">
-      <per-increment>
-        <action>Create task for each behavior</action>
-        <action>Update status: todo → doing → review → done</action>
-      </per-increment>
-    </archon-tracking>
 
     <completion-criteria>
       <criterion>All planned behaviors implemented</criterion>
@@ -332,7 +317,6 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_pr
   <cleanup>
     <action>Kill test watcher process when done</action>
     <action>Remove temporary log files</action>
-    <action>Finalize Archon tasks (if configured)</action>
     <command>kill $TEST_WATCHER_PID 2>/dev/null; rm -f /tmp/test-watch.log</command>
   </cleanup>
 
@@ -354,7 +338,7 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, mcp__archon__manage_pr
     <variable>$ARGUMENTS</variable>
     <usage>
       <example>/tdd Add user authentication with email and password</example>
-      <example>/tdd docs/specs/feature-xyz.md</example>
+      <example>/tdd .claude/specs/feature-xyz.md</example>
       <example>/tdd Implement caching layer for API responses</example>
     </usage>
   </arguments>

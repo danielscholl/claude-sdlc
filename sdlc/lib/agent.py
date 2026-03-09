@@ -417,6 +417,60 @@ def create_pull_request(
     return pr_url, None
 
 
+def resolve_pr_comments(
+    pr_number: str,
+    adw_id: str,
+    logger: logging.Logger
+) -> Tuple[bool, Optional[str]]:
+    """Resolve PR review comments by executing the /pr_resolve slash command.
+
+    This is triggered when a pull_request_review event is received with
+    changes_requested or comment actions.
+
+    Args:
+        pr_number: The pull request number
+        adw_id: The ADW workflow ID
+        logger: Logger instance
+
+    Returns:
+        Tuple[bool, Optional[str]]: (success, error_message)
+    """
+    logger.info("=" * 60)
+    logger.info(f"Starting PR comment resolution for PR #{pr_number}")
+    logger.info(f"ADW ID: {adw_id}")
+    logger.info("=" * 60)
+
+    # Check Claude CLI is installed
+    if not check_claude_installed():
+        error_msg = "Claude Code CLI is not installed"
+        logger.error(error_msg)
+        return False, error_msg
+
+    # Resolve and execute the /pr_resolve command
+    pr_resolve_command = resolve_slash_command("/pr_resolve")
+    logger.info(f"Executing slash command: {pr_resolve_command}")
+
+    response = execute_slash_command(
+        slash_command=pr_resolve_command,
+        args=[pr_number],
+        adw_id=adw_id,
+        model="sonnet",
+        agent_name="pr_resolve",
+        logger=logger
+    )
+
+    if not response.success:
+        logger.error(f"PR comment resolution failed: {response.output}")
+        return False, response.output
+
+    logger.info("=" * 60)
+    logger.info(f"PR comment resolution completed for PR #{pr_number}")
+    logger.info(f"ADW ID: {adw_id}")
+    logger.info("=" * 60)
+
+    return True, None
+
+
 def execute_agent_workflow(
     issue: GitHubIssue,
     issue_number: str,

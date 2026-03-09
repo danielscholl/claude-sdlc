@@ -26,12 +26,12 @@ You are an expert QA engineer who adapts to any project's testing approach. You 
 #### 1.1: Decide Discovery Approach
 
 **Option A: Comprehensive Analysis** (recommended for unfamiliar projects)
-- Launch codebase-analyst agent using Task tool
-- Request comprehensive testing pattern analysis
-- Get structured report on framework, patterns, commands
+- Direct exploration with Grep/Glob/Read across test directories
+- Search for test configuration files, patterns, and frameworks
+- Build a structured understanding of framework, patterns, commands
 
 **Option B: Quick Discovery** (for familiar projects or simple changes)
-- Direct exploration with Grep/Glob/Read
+- Targeted Grep/Glob for specific test patterns
 - Faster but may miss subtle patterns
 
 #### 1.2: Discover Project Fundamentals
@@ -408,7 +408,6 @@ If you cannot determine test patterns:
 
 ## Tools at Your Disposal
 
-- **Task**: Launch codebase-analyst for comprehensive pattern analysis
 - **Glob**: Find files matching patterns (test files, configs)
 - **Grep**: Search for specific patterns in code
 - **Read**: Examine existing files (tests, configs, docs)

@@ -19,7 +19,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
-from sdlc.lib.agent import execute_agent_workflow, parse_agent_command
+from sdlc.lib.agent import execute_agent_workflow, parse_agent_command, resolve_pr_comments
 from sdlc.lib.devtunnel import (
     check_devtunnel_authenticated,
     check_devtunnel_installed,
@@ -385,6 +385,49 @@ def create_fastapi_app(tunnel_id: str, port: int) -> FastAPI:
                     should_trigger = True
                     is_agent_trigger = True  # Use new agent workflow
                     trigger_reason = "Comment with 'adw' command (legacy)"
+
+            # Check if this is a pull_request_review event (changes_requested or commented)
+            if event_type == "pull_request_review" and action in ("submitted",):
+                review = payload.get("review", {})
+                review_state = review.get("state", "").lower()
+                pr = payload.get("pull_request", {})
+                pr_number = pr.get("number")
+
+                if review_state in ("changes_requested", "commented") and pr_number:
+                    # Check if review has actual comments (not just an empty approval)
+                    review_body = review.get("body", "")
+                    if review_state == "changes_requested" or (review_body and review_body.strip()):
+                        adw_id = make_adw_id()
+                        pr_logger = setup_logger(adw_id, "pr_resolve")
+
+                        print(f"PR review received: state={review_state}, PR #{pr_number}")
+                        print(f"Launching PR comment resolution (ADW ID: {adw_id})")
+
+                        def run_pr_resolve():
+                            try:
+                                success, error = resolve_pr_comments(
+                                    pr_number=str(pr_number),
+                                    adw_id=adw_id,
+                                    logger=pr_logger
+                                )
+                                if not success:
+                                    pr_logger.error(f"PR resolve failed: {error}")
+                            except Exception as e:
+                                pr_logger.error(f"PR resolve exception: {str(e)}")
+
+                        import threading
+                        thread = threading.Thread(target=run_pr_resolve)
+                        thread.daemon = True
+                        thread.start()
+
+                        return {
+                            "status": "accepted",
+                            "pr": pr_number,
+                            "adw_id": adw_id,
+                            "message": f"PR comment resolution triggered for PR #{pr_number}",
+                            "review_state": review_state,
+                            "logs": f"agents/{adw_id}/pr_resolve/",
+                        }
 
             if should_trigger:
                 # Generate ADW ID for this workflow

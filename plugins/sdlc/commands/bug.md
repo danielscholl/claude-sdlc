@@ -1,16 +1,16 @@
 ---
 description: Create detailed bug fix specifications with deep codebase analysis
 argument-hint: [bug-description]
-allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__archon__manage_task, mcp__archon__rag_search_knowledge_base
+allowed-tools: Write, Read, Glob, Grep, Task
 ---
 
 <bug-command>
   <objective>
-    Create a comprehensive bug fix specification in docs/specs/*.md using deep codebase analysis and optional Archon task management.
+    Create a comprehensive bug fix specification in .claude/specs/*.md using deep codebase analysis.
   </objective>
 
   <documentation-structure>
-    <directory path="docs/specs/">Bug fix specifications</directory>
+    <directory path=".claude/specs/">Bug fix specifications</directory>
     <directory path="docs/decisions/">Architecture Decision Records (ADRs)</directory>
     <directory path="docs/design/">Requirements and design documents</directory>
   </documentation-structure>
@@ -25,7 +25,7 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
     </step>
 
     <step number="2" name="deep-codebase-analysis" importance="critical">
-      <action>Launch codebase-analyst agent using Task tool</action>
+      <action>Launch Explore agent (subagent_type="Explore") for deep codebase analysis</action>
       <analysis>
         <item>Architecture patterns in the affected area</item>
         <item>Error handling patterns</item>
@@ -35,18 +35,8 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </analysis>
     </step>
 
-    <step number="3" name="knowledge-base-search" optional="true">
-      <condition>If Archon RAG is available</condition>
-      <action>Search for similar bugs and fixes</action>
-      <commands>
-        <command>mcp__archon__rag_get_available_sources()</command>
-        <command>mcp__archon__rag_search_knowledge_base(query)</command>
-        <command>mcp__archon__rag_search_code_examples(query)</command>
-      </commands>
-    </step>
-
-    <step number="4" name="targeted-research">
-      <action>Based on codebase-analyst findings, search for:</action>
+    <step number="3" name="targeted-research">
+      <action>Based on Explore agent findings, search for:</action>
       <targets>
         <target>Code that triggers the bug</target>
         <target>Related functionality that might be affected</target>
@@ -55,7 +45,7 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </targets>
     </step>
 
-    <step number="5" name="reproduction">
+    <step number="4" name="reproduction">
       <action>Attempt to reproduce the bug</action>
       <verify>
         <item>Confirm bug exists</item>
@@ -65,13 +55,6 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </verify>
     </step>
   </research-phase>
-
-  <archon-integration optional="true">
-    <condition>If Archon MCP is configured</condition>
-    <action>Create project for bug tracking</action>
-    <command>mcp__archon__manage_project("create", title="Bug Fix: [name]")</command>
-    <note>Store project_id in spec for execution phase</note>
-  </archon-integration>
 
   <relevant-files>
     <focus>
@@ -112,14 +95,11 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       - [Reference any related ADRs from docs/decisions/ that impact the fix]
 
       ## Codebase Analysis Findings
-      [Include key findings from the codebase-analyst agent]
+      [Include key findings from the Explore agent]
       - Error patterns: [patterns in the affected area]
       - Similar fixes: [references to similar bug fixes]
       - Dependencies: [code that depends on the buggy component]
       - Side effects: [potential impacts of the fix]
-
-      ## Archon Project
-      [If Archon is configured, include project_id: [ID]]
 
       ## Relevant Files
       ### Files to Fix
@@ -149,13 +129,11 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       - Description: [what needs to be done]
       - Files to modify: [list files]
       - Changes: [specific changes needed]
-      - Archon task: [will be created during implementation]
 
       ### Task 2: [Task Name]
       - Description: [what needs to be done]
       - Files to modify: [list files]
       - Changes: [specific changes needed]
-      - Archon task: [will be created during implementation]
 
       [Continue with all tasks...]
 
@@ -196,16 +174,16 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       [Document any workarounds or temporary measures]
 
       ## Execution
-      This spec can be implemented using: `/implement docs/specs/bug-[bug-name].md`
+      This spec can be implemented using: `/implement .claude/specs/bug-[bug-name].md`
     </template>
   </spec-format>
 
   <instructions>
-    <guideline>Create plan in docs/specs/*.md using kebab-case naming (bug-[name])</guideline>
-    <guideline importance="critical">Use codebase-analyst agent for deep analysis of affected code</guideline>
+    <guideline>Create plan in .claude/specs/*.md using kebab-case naming (bug-[name])</guideline>
+    <guideline importance="critical">Use Explore agent (subagent_type="Explore") for deep analysis of affected code</guideline>
     <guideline importance="critical">Be surgical with the fix - minimal changes that solve the root cause</guideline>
     <guideline>Replace all placeholders with actual values</guideline>
-    <guideline>Follow patterns discovered by codebase-analyst</guideline>
+    <guideline>Follow patterns discovered during codebase analysis</guideline>
     <guideline>Ensure fix doesn't introduce new bugs</guideline>
     <guideline>Add tests to prevent regression</guideline>
     <guideline>Reference related docs in docs/design/ and docs/decisions/</guideline>

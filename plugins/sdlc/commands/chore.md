@@ -1,16 +1,16 @@
 ---
 description: Create detailed specifications for maintenance tasks and codebase improvements
 argument-hint: [chore-description]
-allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__archon__manage_task, mcp__archon__rag_search_knowledge_base
+allowed-tools: Write, Read, Glob, Grep, Task
 ---
 
 <chore-command>
   <objective>
-    Create a comprehensive chore specification in docs/specs/*.md for maintenance tasks using deep codebase analysis and optional Archon task management.
+    Create a comprehensive chore specification in .claude/specs/*.md for maintenance tasks using deep codebase analysis.
   </objective>
 
   <documentation-structure>
-    <directory path="docs/specs/">Chore specifications</directory>
+    <directory path=".claude/specs/">Chore specifications</directory>
     <directory path="docs/decisions/">Architecture Decision Records (ADRs)</directory>
     <directory path="docs/design/">Requirements and design documents</directory>
   </documentation-structure>
@@ -25,7 +25,7 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
     </step>
 
     <step number="2" name="deep-codebase-analysis" importance="critical">
-      <action>Launch codebase-analyst agent using Task tool</action>
+      <action>Launch Explore agent (subagent_type="Explore") for deep codebase analysis</action>
       <analysis>
         <item>Current implementation patterns</item>
         <item>Code organization and structure</item>
@@ -35,18 +35,8 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </analysis>
     </step>
 
-    <step number="3" name="knowledge-base-search" optional="true">
-      <condition>If Archon RAG is available</condition>
-      <action>Search for best practices and patterns</action>
-      <commands>
-        <command>mcp__archon__rag_get_available_sources()</command>
-        <command>mcp__archon__rag_search_knowledge_base(query)</command>
-        <command>mcp__archon__rag_search_code_examples(query)</command>
-      </commands>
-    </step>
-
-    <step number="4" name="targeted-research">
-      <action>Based on codebase-analyst findings, search for:</action>
+    <step number="3" name="targeted-research">
+      <action>Based on Explore agent findings, search for:</action>
       <targets>
         <target>Code that needs to be updated</target>
         <target>Dependencies and imports</target>
@@ -55,7 +45,7 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </targets>
     </step>
 
-    <step number="5" name="impact-analysis">
+    <step number="4" name="impact-analysis">
       <action>Analyze the impact of the chore</action>
       <assess>
         <item>Files that will be modified</item>
@@ -65,13 +55,6 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </assess>
     </step>
   </research-phase>
-
-  <archon-integration optional="true">
-    <condition>If Archon MCP is configured</condition>
-    <action>Create project for chore tracking</action>
-    <command>mcp__archon__manage_project("create", title="Chore: [name]")</command>
-    <note>Store project_id in spec for execution phase</note>
-  </archon-integration>
 
   <relevant-files>
     <focus>
@@ -105,14 +88,11 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       - [Reference any related ADRs from docs/decisions/]
 
       ## Codebase Analysis Findings
-      [Include key findings from the codebase-analyst agent]
+      [Include key findings from the Explore agent]
       - Current patterns: [existing implementation patterns]
       - Dependencies: [components that depend on affected code]
       - Similar changes: [references to similar refactoring]
       - Impact assessment: [potential impacts of the changes]
-
-      ## Archon Project
-      [If Archon is configured, include project_id: [ID]]
 
       ## Relevant Files
       ### Files to Modify
@@ -142,13 +122,11 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       - Description: [what needs to be done]
       - Files to modify: [list files]
       - Expected outcome: [what should result]
-      - Archon task: [will be created during implementation]
 
       ### Task 2: [Task Name]
       - Description: [what needs to be done]
       - Files to modify: [list files]
       - Expected outcome: [what should result]
-      - Archon task: [will be created during implementation]
 
       [Continue with all tasks...]
 
@@ -193,16 +171,16 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       [Document any temporary workarounds or technical debt created/removed]
 
       ## Execution
-      This spec can be implemented using: `/implement docs/specs/chore-[chore-name].md`
+      This spec can be implemented using: `/implement .claude/specs/chore-[chore-name].md`
     </template>
   </spec-format>
 
   <instructions>
-    <guideline>Create plan in docs/specs/*.md using kebab-case naming (chore-[name])</guideline>
-    <guideline importance="critical">Use codebase-analyst agent for understanding current patterns</guideline>
+    <guideline>Create plan in .claude/specs/*.md using kebab-case naming (chore-[name])</guideline>
+    <guideline importance="critical">Use Explore agent (subagent_type="Explore") for understanding current patterns</guideline>
     <guideline importance="critical">Be thorough to avoid multiple rounds of changes</guideline>
     <guideline>Replace all placeholders with actual values</guideline>
-    <guideline>Follow patterns discovered by codebase-analyst</guideline>
+    <guideline>Follow patterns discovered during codebase analysis</guideline>
     <guideline>Consider impact on dependent components</guideline>
     <guideline>Update tests and documentation as needed</guideline>
     <guideline>Reference related docs in docs/design/ and docs/decisions/</guideline>

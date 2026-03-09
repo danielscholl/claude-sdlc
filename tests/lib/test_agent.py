@@ -274,13 +274,13 @@ class TestLocatePlanFile:
         """Test successful plan file location using git status."""
         mock_run.return_value = Mock(
             returncode=0,
-            stdout="?? ai-specs/test-plan.md\nM  some-file.py",
+            stdout="?? .claude/specs/test-plan.md\nM  some-file.py",
             stderr=""
         )
 
         file_path, error = locate_plan_file("Previous output", "test-adw", mock_logger)
 
-        assert file_path == "ai-specs/test-plan.md"
+        assert file_path == ".claude/specs/test-plan.md"
         assert error is None
 
     @patch('subprocess.run')
@@ -354,7 +354,7 @@ class TestImplementPlan:
             session_id="test-session"
         )
 
-        output, error = implement_plan("ai-specs/plan.md", "test-adw", mock_logger)
+        output, error = implement_plan(".claude/specs/plan.md", "test-adw", mock_logger)
 
         assert output == "Implementation completed"
         assert error is None
@@ -377,7 +377,7 @@ class TestCreatePullRequest:
         pr_url, error = create_pull_request(
             "feat-123-test",
             mock_issue,
-            "ai-specs/plan.md",
+            ".claude/specs/plan.md",
             "test-adw",
             mock_logger
         )
@@ -418,7 +418,7 @@ class TestExecuteAgentWorkflow:
         mock_classify.return_value = ("/feature", None)
         mock_branch.return_value = ("feat-123-test", None)
         mock_plan.return_value = ("Plan output", None)
-        mock_locate.return_value = ("ai-specs/plan.md", None)
+        mock_locate.return_value = (".claude/specs/plan.md", None)
         mock_commit.return_value = (True, None)
         mock_implement.return_value = ("Implementation output", None)
         mock_pr.return_value = ("https://github.com/test/repo/pull/456", None)

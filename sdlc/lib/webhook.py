@@ -76,13 +76,13 @@ def create_github_webhook(repo_path: str, webhook_url: str, events: List[str] = 
     Args:
         repo_path: The repository path (owner/repo)
         webhook_url: The webhook URL to call
-        events: List of events to subscribe to (default: ["issues", "issue_comment"])
+        events: List of events to subscribe to (default: ["issues", "issue_comment", "pull_request_review"])
 
     Returns:
         Optional[int]: The webhook ID if created, None otherwise
     """
     if events is None:
-        events = ["issues", "issue_comment"]
+        events = ["issues", "issue_comment", "pull_request_review"]
 
     try:
         cmd = [
@@ -203,13 +203,13 @@ def ensure_webhook_configured(repo_path: str, webhook_url: str, events: List[str
     Args:
         repo_path: The repository path (owner/repo)
         webhook_url: The webhook URL to configure
-        events: List of events to subscribe to (default: ["issues", "issue_comment"])
+        events: List of events to subscribe to (default: ["issues", "issue_comment", "pull_request_review"])
 
     Returns:
         bool: True if webhook is configured, False otherwise
     """
     if events is None:
-        events = ["issues", "issue_comment"]
+        events = ["issues", "issue_comment", "pull_request_review"]
 
     # Check if webhook already exists
     webhooks = list_github_webhooks(repo_path)

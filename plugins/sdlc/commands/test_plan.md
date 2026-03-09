@@ -1,23 +1,23 @@
 ---
-description: Analyze unit tests and create comprehensive test documentation with Archon task management
+description: Analyze unit tests and create comprehensive test documentation
 argument-hint: [optional-module-filter] [--file] [--plan]
-allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__manage_project, mcp__archon__manage_task
+allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite
 ---
 
 <test-plan-command>
   <objective>
-    Generate a comprehensive TEST PLAN + ASSESSMENT document with integrated Archon task management that:
+    Generate a comprehensive TEST PLAN + ASSESSMENT document that:
     1. Assesses current state (what exists, coverage, quality)
     2. Provides clear test plan (objectives, scope, priorities, strategy)
-    3. Delivers actionable recommendations tracked as Archon tasks
-    4. Creates all improvement tasks in Archon for visibility and tracking
+    3. Delivers actionable recommendations with priority rankings
+    4. Tracks improvement tasks for visibility
 
-    The document serves both as historical assessment and forward-looking plan with full task management integration.
+    The document serves both as historical assessment and forward-looking plan.
   </objective>
 
   <critical-rules>
     <priority level="P0" label="MUST NEVER VIOLATE">
-      <rule name="archon-integration">NEVER skip, ONE task in "doing" at a time, track all phases</rule>
+      <rule name="task-tracking">Track all phases, ONE task in progress at a time</rule>
       <rule name="mature-wip-scoring">Score MATURE tests only (exclude ≤10% pass rate jobs), report WIP separately</rule>
       <rule name="state-separation">Current facts ≠ Future recommendations (label clearly: "Current State" vs "Recommended (Future)")</rule>
       <rule name="file-writing">NEVER write any files to any place other then the directory ___</rule>
@@ -40,17 +40,6 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
   </critical-rules>
 
   <patterns>
-    <pattern name="archon-task-lifecycle">
-      <description>Standard lifecycle for Archon task state management</description>
-      <code>
-        Phase Start:  mcp__archon__manage_task("update", task_id="...", status="doing")
-                      (Only ONE task in "doing" at any time)
-        Phase End:    mcp__archon__manage_task("update", task_id="...", status="review")
-        Final:        Update all analysis tasks → "done"
-      </code>
-      <critical>Only ONE task in "doing" status at any time</critical>
-    </pattern>
-
     <pattern name="test-file-discovery">
       <description>Comprehensive patterns for locating test files</description>
       <glob-patterns>
@@ -166,19 +155,9 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
   </maturity-scoring>
 
   <workflow>
-    <phase number="1" name="archon-setup">
+    <phase number="1" name="task-setup">
       <step number="1">
-        <action>Create Archon project</action>
-        <command>mcp__archon__manage_project("create", title="Test Analysis - [Project Name]")</command>
-      </step>
-
-      <step number="2">
-        <action>Store project_id for use throughout execution</action>
-        <important>Needed for all task creation and updates</important>
-      </step>
-
-      <step number="3">
-        <action>Create 6 analysis phase tasks (all status="todo")</action>
+        <action>Create 6 analysis phase tasks using TodoWrite</action>
         <tasks>
           <task>Discover test files and frameworks</task>
           <task>Fetch CI/CD test run history</task>
@@ -192,8 +171,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="2" name="discovery">
       <lifecycle>
-        <start>Update "Discover test files and frameworks" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Discover test files and frameworks" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <step number="1" name="locate-test-files">
@@ -249,8 +228,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
       <condition>Continue even if CI unavailable - mark unavailability and use fallback scores</condition>
 
       <lifecycle>
-        <start>Update "Fetch CI/CD test run history" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Fetch CI/CD test run history" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <platform-detection>
@@ -289,8 +268,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="3" name="inventory">
       <lifecycle>
-        <start>Update "Inventory test classes and methods" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Inventory test classes and methods" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <step number="1" name="catalog-test-classes">
@@ -333,8 +312,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="4" name="analysis">
       <lifecycle>
-        <start>Update "Analyze test patterns and quality" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Analyze test patterns and quality" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <step number="1" name="analyze-test-purpose">
@@ -445,8 +424,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="6" name="value-assessment">
       <lifecycle>
-        <start>Update "Assess coverage and identify gaps" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Assess coverage and identify gaps" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <step number="1" name="critical-path-coverage">
@@ -509,8 +488,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="7" name="test-plan-generation">
       <lifecycle>
-        <start>Update "Generate test plan and documentation" task to status="doing"</start>
-        <complete>Update task to status="review"</complete>
+        <start>Mark "Generate test plan and documentation" task as in-progress</start>
+        <complete>Mark task as complete</complete>
       </lifecycle>
 
       <step number="1" name="define-objectives">
@@ -599,14 +578,14 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
         </conditional>
 
         <follow>Documentation Schema (defined below)</follow>
-        <exclude>Archon IDs - document must be tool-agnostic</exclude>
+        <exclude>Internal tracking IDs - document must be tool-agnostic</exclude>
       </step>
     </phase>
 
     <phase number="9" name="create-improvement-tasks">
       <condition>ONLY execute this phase if --plan argument is provided</condition>
 
-      <objective>Create Archon tasks for ALL identified improvements</objective>
+      <objective>Create tasks for ALL identified improvements using TodoWrite</objective>
 
       <effort-sizing>
         <description>Use T-shirt sizes to indicate complexity, NOT day estimates</description>
@@ -617,34 +596,28 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
       <step number="1" name="p1-critical-tasks">
         <for-each recommendation="priority:P1">
-          <create>
-            <command>mcp__archon__manage_task("create", project_id=..., title="[P1 Improvement Name]", description="[Details + risk mitigation]", status="todo")</command>
-            <tag>Priority:P1, Type:Critical, Effort:Small|Medium|Large</tag>
-          </create>
+          <create>Create task with title, description, risk mitigation details</create>
+          <tag>Priority:P1, Type:Critical, Effort:Small|Medium|Large</tag>
         </for-each>
       </step>
 
       <step number="2" name="p2-important-tasks">
         <for-each recommendation="priority:P2">
-          <create>
-            <command>mcp__archon__manage_task("create", project_id=..., title="[P2 Improvement Name]", description="[Details + risk mitigation]", status="todo")</command>
-            <tag>Priority:P2, Type:Important, Effort:Small|Medium|Large</tag>
-          </create>
+          <create>Create task with title, description, risk mitigation details</create>
+          <tag>Priority:P2, Type:Important, Effort:Small|Medium|Large</tag>
         </for-each>
       </step>
 
       <step number="3" name="p3-nice-to-have-tasks">
         <for-each recommendation="priority:P3">
-          <create>
-            <command>mcp__archon__manage_task("create", project_id=..., title="[P3 Improvement Name]", description="[Brief description]", status="todo")</command>
-            <tag>Priority:P3, Type:Nice-to-have, Effort:Small|Medium|Large</tag>
-          </create>
+          <create>Create task with title and brief description</create>
+          <tag>Priority:P3, Type:Nice-to-have, Effort:Small|Medium|Large</tag>
         </for-each>
       </step>
 
       <step number="4" name="migration-tasks" optional="true">
         <example>
-          <command>mcp__archon__manage_task("create", project_id=..., title="Migrate from JUnit 4 to JUnit 5", description="[Migration checklist with steps]", status="todo")</command>
+          <create>Create task: "Migrate from JUnit 4 to JUnit 5" with migration checklist</create>
           <tag>Type:Migration, Effort:Large</tag>
         </example>
       </step>
@@ -660,13 +633,11 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
 
     <phase number="10" name="finalize-analysis">
       <step number="1" name="mark-tasks-done">
-        <for-each task="in 6 analysis phase tasks">
-          <command>mcp__archon__manage_task("update", task_id=..., status="done")</command>
-        </for-each>
+        <action>Mark all 6 analysis phase tasks as complete in TodoWrite</action>
       </step>
 
       <step number="2" name="generate-final-report">
-        <critical>Do NOT include Archon project IDs or task references in tests-info.md — document must be tool-agnostic</critical>
+        <critical>Document must be tool-agnostic — no internal tracking references</critical>
 
         <summary>
           <item>Total analysis tasks completed: 6</item>
@@ -772,14 +743,9 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
   </terminology>
 
   <error-handling>
-    <scenario name="Archon fails">
-      <action>Retry operation</action>
-      <action>If no archon available then manage your own task system</action>
-    </scenario>
-
     <scenario name="No tests found">
       <action>Create initial test plan from scratch</action>
-      <action>Create Archon tasks for implementation</action>
+      <action>Create improvement tasks for implementation</action>
     </scenario>
 
     <scenario name="CI unavailable">
@@ -809,7 +775,7 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
     </arg>
 
     <arg name="--plan" optional="true" flag="true">
-      <description>Create Archon improvement tasks from recommendations</description>
+      <description>Create improvement tasks from recommendations</description>
       <default>Skip task creation, only generate documentation</default>
       <creates>P1/P2/P3 tasks with T-shirt size effort estimates (Small/Medium/Large)</creates>
     </arg>
@@ -817,8 +783,8 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
     <examples>
       <example command="partition-core">Analyze partition-core module, output directly</example>
       <example command="--file">Analyze all modules, write to ___/tests-info.md</example>
-      <example command="--plan">Analyze all modules, output directly, create Archon tasks</example>
-      <example command="partition-core --file --plan">Analyze partition-core, write to ___/tests-info.md, create Archon tasks</example>
+      <example command="--plan">Analyze all modules, output directly, create improvement tasks</example>
+      <example command="partition-core --file --plan">Analyze partition-core, write to ___/tests-info.md, create improvement tasks</example>
     </examples>
   </arguments>
 
@@ -827,7 +793,7 @@ allowed-tools: Read, Glob, Grep, Task, Write, Bash, TodoWrite, mcp__archon__mana
       <action>Create ___ directory if it doesn't exist</action>
       <action>Write comprehensive test plan and assessment to ___/tests-info.md</action>
       <include>All sections from Documentation Schema</include>
-      <exclude>Archon project IDs (tool-agnostic document)</exclude>
+      <exclude>Internal tracking IDs (tool-agnostic document)</exclude>
     </if-file-flag>
 
     <else>

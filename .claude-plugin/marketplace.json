@@ -9,10 +9,15 @@
       "name": "sdlc",
       "source": "./plugins/sdlc",
       "description": "Software development lifecycle automation - slash commands, agents, and GitHub/GitLab webhook watchers"
+    },
+    {
+      "name": "cadre",
+      "source": "./plugins/cadre",
+      "description": "Multi-agent team bootstrapper - analyzes projects and generates tailored Claude Cadre teams via AI debate"
     }
   ],
   "metadata": {
     "description": "Claude Code plugins for software development lifecycle automation",
-    "version": "1.2.0"
+    "version": "2.0.0"
   }
 }

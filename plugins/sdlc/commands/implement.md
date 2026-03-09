@@ -1,23 +1,22 @@
 ---
-description: Implement a feature specification with full Archon task management integration
+description: Implement a feature specification with structured task tracking
 argument-hint: [spec-file-path]
-allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon__manage_project, mcp__archon__manage_task
+allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite
 ---
 
 <implement-command>
   <objective>
-    Execute a comprehensive feature specification with integrated Archon task management throughout the entire development process.
+    Execute a comprehensive feature specification with structured task tracking throughout the entire development process.
   </objective>
 
   <requirements>
-    <mandatory>Maintain continuous Archon task management throughout execution</mandatory>
-    <mandatory>Create all tasks in Archon before starting implementation</mandatory>
-    <mandatory>Only ONE task in "doing" status at any time</mandatory>
-    <mandatory>Validate all work before marking tasks as "done"</mandatory>
+    <mandatory>Track task progress using TodoWrite throughout execution</mandatory>
+    <mandatory>Only work on ONE task at a time</mandatory>
+    <mandatory>Validate all work before marking tasks as complete</mandatory>
   </requirements>
 
   <documentation-structure>
-    <directory path="docs/specs/">Feature implementation specifications</directory>
+    <directory path=".claude/specs/">Feature implementation specifications</directory>
     <directory path="docs/decisions/">Architecture Decision Records (ADRs)</directory>
     <directory path="docs/design/">Requirements and design documents</directory>
   </documentation-structure>
@@ -34,25 +33,15 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
     </extract>
   </phase>
 
-  <phase number="2" name="archon-setup">
-    <step number="1">Check if project_id exists in spec</step>
-    <step number="2">Check CLAUDE.md for project references</step>
-    <step number="3">If no project exists:
-      <action>Create new project: mcp__archon__manage_project("create", title="[Feature Name]")</action>
-      <action>Store project_id for use throughout execution</action>
-    </step>
-  </phase>
-
-  <phase number="3" name="create-tasks">
-    <action>Create ALL tasks in Archon upfront</action>
+  <phase number="2" name="create-tasks">
+    <action>Create ALL tasks in TodoWrite upfront from the spec</action>
     <for-each task="in spec">
-      <create>mcp__archon__manage_task("create", project_id=..., title=..., description=..., status="todo")</create>
-      <tag>Tag with phase: Foundation/Core/Integration</tag>
+      <create>Add task with description and phase tag (Foundation/Core/Integration)</create>
     </for-each>
-    <important>Ensures complete visibility of work scope</important>
+    <important>Ensures complete visibility of work scope before starting</important>
   </phase>
 
-  <phase number="4" name="codebase-analysis">
+  <phase number="3" name="codebase-analysis">
     <action>Review codebase analysis findings from spec</action>
     <action>Verify patterns with Grep and Glob tools</action>
     <action>Read all referenced files and components</action>
@@ -60,11 +49,10 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
     <action>Build comprehensive understanding of context</action>
   </phase>
 
-  <phase number="5" name="implementation-cycle">
+  <phase number="4" name="implementation-cycle">
     <for-each task="in sequence">
       <step name="start-task">
-        <archon>mcp__archon__manage_task("update", task_id=..., status="doing")</archon>
-        <local>Use TodoWrite for subtask tracking if needed</local>
+        <action>Mark current task as in-progress in TodoWrite</action>
       </step>
 
       <step name="implement">
@@ -75,14 +63,14 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
       </step>
 
       <step name="complete-task">
-        <archon>mcp__archon__manage_task("update", task_id=..., status="review")</archon>
-        <note>Do NOT mark as "done" yet - comes after validation</note>
+        <action>Mark task as complete in TodoWrite</action>
+        <note>Verify implementation before marking complete</note>
       </step>
     </for-each>
-    <critical>Only ONE task in "doing" status at any time</critical>
+    <critical>Only work on ONE task at a time</critical>
   </phase>
 
-  <phase number="6" name="validation">
+  <phase number="5" name="validation">
     <step name="launch-validator" importance="critical">
       <action>Launch validator agent using Task tool</action>
       <provide>
@@ -106,7 +94,7 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
     </step>
   </phase>
 
-  <phase number="7" name="documentation">
+  <phase number="6" name="documentation">
     <step name="update-spec">
       <action>Mark completed items in acceptance criteria</action>
       <action>Note any deviations from original plan</action>
@@ -125,17 +113,7 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
     </step>
   </phase>
 
-  <phase number="8" name="finalize-tasks">
-    <for-each task="with test coverage">
-      <archon>mcp__archon__manage_task("update", task_id=..., status="done")</archon>
-    </for-each>
-    <for-each task="without test coverage">
-      <leave>Status as "review" for future attention</leave>
-      <document>Reason for review status</document>
-    </for-each>
-  </phase>
-
-  <phase number="9" name="final-report">
+  <phase number="7" name="final-report">
     <summary>
       <item>Total tasks created and completed</item>
       <item>Tasks remaining in review and why</item>
@@ -152,20 +130,11 @@ allowed-tools: Edit, Write, Read, Bash, Glob, Grep, Task, TodoWrite, mcp__archon
     </git-status>
   </phase>
 
-  <error-handling>
-    <if-archon-fails>
-      <action>Retry the operation</action>
-      <action>If persistent, document but continue locally</action>
-      <action>Never abandon Archon integration</action>
-    </if-archon-fails>
-  </error-handling>
-
   <workflow-rules>
-    <rule>NEVER skip Archon task management</rule>
     <rule>ALWAYS create all tasks before starting</rule>
-    <rule>MAINTAIN one task in "doing" at a time</rule>
-    <rule>VALIDATE before marking "done"</rule>
-    <rule>TRACK progress continuously</rule>
+    <rule>WORK on one task at a time</rule>
+    <rule>VALIDATE before marking complete</rule>
+    <rule>TRACK progress continuously with TodoWrite</rule>
     <rule>ANALYZE codebase thoroughly first</rule>
     <rule>TEST everything with validator agent</rule>
     <rule>FOLLOW patterns from codebase analysis</rule>

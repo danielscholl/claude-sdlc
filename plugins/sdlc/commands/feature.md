@@ -1,16 +1,16 @@
 ---
 description: Create detailed implementation specs for new features with deep codebase analysis
 argument-hint: [feature-description]
-allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__archon__manage_task, mcp__archon__rag_search_knowledge_base
+allowed-tools: Write, Read, Glob, Grep, Task
 ---
 
 <feature-command>
   <objective>
-    Create a comprehensive implementation specification in docs/specs/*.md for a new feature using deep codebase analysis and optional Archon task management.
+    Create a comprehensive implementation specification in .claude/specs/*.md for a new feature using deep codebase analysis.
   </objective>
 
   <documentation-structure>
-    <directory path="docs/specs/">Feature implementation specifications</directory>
+    <directory path=".claude/specs/">Feature implementation specifications</directory>
     <directory path="docs/decisions/">Architecture Decision Records (ADRs)</directory>
     <directory path="docs/design/">Requirements and design documents</directory>
   </documentation-structure>
@@ -25,7 +25,7 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
     </step>
 
     <step number="2" name="deep-codebase-analysis" importance="critical">
-      <action>Launch codebase-analyst agent using Task tool</action>
+      <action>Launch Explore agent (subagent_type="Explore") for deep codebase analysis</action>
       <analysis>
         <item>Architecture patterns and project structure</item>
         <item>Coding conventions and naming standards</item>
@@ -35,18 +35,8 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </analysis>
     </step>
 
-    <step number="3" name="knowledge-base-search" optional="true">
-      <condition>If Archon RAG is available</condition>
-      <action>Search for relevant patterns and examples</action>
-      <commands>
-        <command>mcp__archon__rag_get_available_sources()</command>
-        <command>mcp__archon__rag_search_knowledge_base(query)</command>
-        <command>mcp__archon__rag_search_code_examples(query)</command>
-      </commands>
-    </step>
-
-    <step number="4" name="targeted-research">
-      <action>Based on codebase-analyst findings, search for:</action>
+    <step number="3" name="targeted-research">
+      <action>Based on Explore agent findings, search for:</action>
       <targets>
         <target>Similar feature implementations</target>
         <target>Integration points for new feature</target>
@@ -55,13 +45,6 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       </targets>
     </step>
   </research-phase>
-
-  <archon-integration optional="true">
-    <condition>If Archon MCP is configured</condition>
-    <action>Create project for feature tracking</action>
-    <command>mcp__archon__manage_project("create", title="Feature: [name]")</command>
-    <note>Store project_id in spec for execution phase</note>
-  </archon-integration>
 
   <relevant-files>
     <focus>
@@ -99,14 +82,11 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       - [Reference any related ADRs from docs/decisions/ that impact this feature]
 
       ## Codebase Analysis Findings
-      [Include key findings from the codebase-analyst agent]
+      [Include key findings from the Explore agent]
       - Architecture patterns: [patterns to follow]
       - Naming conventions: [conventions discovered]
       - Similar implementations: [references found]
       - Integration patterns: [how to integrate]
-
-      ## Archon Project
-      [If Archon is configured, include project_id: [ID]]
 
       ## Relevant Files
       ### Existing Files
@@ -132,12 +112,10 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       ### Task 1: [Task Name]
       - Description: [what needs to be done]
       - Files to modify: [list files]
-      - Archon task: [will be created during implementation]
 
       ### Task 2: [Task Name]
       - Description: [what needs to be done]
       - Files to modify: [list files]
-      - Archon task: [will be created during implementation]
 
       [Continue with all tasks...]
 
@@ -166,18 +144,18 @@ allowed-tools: Write, Read, Glob, Grep, Task, mcp__archon__manage_project, mcp__
       [Include all validation commands]
 
       ## Notes
-      [Any additional notes, future considerations, or patterns discovered by codebase-analyst]
+      [Any additional notes, future considerations, or patterns discovered during analysis]
 
       ## Execution
-      This spec can be implemented using: `/implement docs/specs/[feature-name].md`
+      This spec can be implemented using: `/implement .claude/specs/[feature-name].md`
     </template>
   </spec-format>
 
   <instructions>
-    <guideline>Create plan in docs/specs/*.md using kebab-case naming</guideline>
-    <guideline importance="critical">Use codebase-analyst agent for deep pattern analysis</guideline>
+    <guideline>Create plan in .claude/specs/*.md using kebab-case naming</guideline>
+    <guideline importance="critical">Use Explore agent (subagent_type="Explore") for deep pattern analysis</guideline>
     <guideline>Replace all placeholders with actual values</guideline>
-    <guideline>Follow patterns discovered by codebase-analyst</guideline>
+    <guideline>Follow patterns discovered during codebase analysis</guideline>
     <guideline>Design for extensibility and maintainability</guideline>
     <guideline>Reference related docs in docs/design/ and docs/decisions/</guideline>
   </instructions>
