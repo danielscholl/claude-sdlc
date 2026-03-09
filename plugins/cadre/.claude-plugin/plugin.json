@@ -1,6 +1,6 @@
 {
   "name": "cadre",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Multi-agent team bootstrapper — analyzes projects and generates tailored Claude Cadre teams via AI debate",
   "author": {
     "name": "Daniel Scholl",
